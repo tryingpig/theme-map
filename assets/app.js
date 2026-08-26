@@ -170,6 +170,8 @@ function renderBody() {
 }
 
 function renderLegend() {
+  // ⚑ 안내는 실제로 비고가 달린 종목이 있을 때만 — 비고는 노션에서 사람이 넣는 값이다.
+  const hasNote = allStocks().some((s) => s.note);
   $("legend").innerHTML = `
     <span>등락률</span>
     <span class="ramp">
@@ -180,7 +182,7 @@ function renderLegend() {
     </span>
     <span>하락 ← 0 → 상승 · 진하기는 컬럼별 상대 크기</span>
     <span>· 고점대비 막대는 <b>고점 대비 현재 위치</b>(길수록 고점 근처)</span>
-    <span>· ⚑ 는 테마 순수도가 낮은 종목</span>`;
+    ${hasNote ? "<span>· ⚑ 는 비고가 달린 종목(마우스를 올리면 내용)</span>" : ""}`;
 }
 
 function renderErrors() {
