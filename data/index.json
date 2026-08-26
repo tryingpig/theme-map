@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26 23:16",
+  "updated_at": "2026-08-26 23:53",
   "as_of": "2026-08-26",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -14,6 +14,18 @@
       "r1m": 14.85,
       "r1y": 46.92,
       "from_52w_high": -37.67,
+      "from_all_high": null
+    },
+    {
+      "id": "데이터센터",
+      "name": "데이터센터",
+      "count": 7,
+      "as_of": "2026-08-26",
+      "r1d": 2.1,
+      "r5d": 2.17,
+      "r1m": 20.4,
+      "r1y": 183.36,
+      "from_52w_high": 0.0,
       "from_all_high": null
     }
   ],

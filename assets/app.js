@@ -18,6 +18,12 @@ const state = { index: null, theme: null, data: null, sort: null, dir: -1 };
 const fmtPct = (v, d = 2) => (v === null || v === undefined ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(d)}`);
 const fmtWon = (v) => (v === null || v === undefined ? "-" : Math.round(v).toLocaleString("ko-KR"));
 
+/* 고점대비가 0에 붙어 있으면 그 기간의 신고가다. '0.0'은 결측처럼 읽히므로 말로 쓴다. */
+const fmtDrop = (v) => {
+  if (v === null || v === undefined) return "-";
+  return v > -0.05 ? "신고가" : v.toFixed(1);
+};
+
 /* ── 히트맵 색 단계 ─────────────────────────────────────
    컬럼마다 스케일이 따로다. 1일(±15%)과 1년(±400%)을 한 스케일로 칠하면
    1일 컬럼이 통째로 무채색이 된다. 이상치 한 종목(대우건설 +396%)이 나머지를
@@ -68,7 +74,7 @@ function renderHero() {
       ${stats.map(([k, v]) => `
         <div class="stat">
           <div class="stat-k">${k}</div>
-          <div class="stat-v ${v > 0 ? "up" : v < 0 ? "dn" : ""}">${fmtPct(v, k.includes("고점") ? 1 : 2)}</div>
+          <div class="stat-v ${v > 0 ? "up" : v < 0 ? "dn" : ""}">${k.includes("고점") ? fmtDrop(v) : fmtPct(v, 2)}</div>
         </div>`).join("")}
     </div>`;
 }
@@ -115,7 +121,7 @@ function stockRow(st, sc, showRole) {
       // 막대는 낙폭이 아니라 **고점 대비 현재 위치**를 채운다(길수록 고점 근처).
       // 컬럼 이름이 묻는 게 "지금 어디쯤인가"이므로 그 방향으로 읽혀야 한다.
       const pos = v === null || v === undefined ? 0 : Math.max(0, Math.min(100, 100 + v));
-      html += `<td class="num drop"><span class="v">${fmtPct(v, 1)}</span>
+      html += `<td class="num drop"><span class="v">${fmtDrop(v)}</span>
                <span class="bar"><i style="width:${pos}%"></i></span></td>`;
     } else {
       html += `<td class="num heat ${heatClass(v, sc[c.key])}">${fmtPct(v)}</td>`;
@@ -133,7 +139,7 @@ function groupRow(g) {
   let html = `<td>${g.role}<span class="gcount">${g.summary.count}종목${solo ? "" : " · 평균"}</span></td><td></td>`;
   COLS.forEach((c) => {
     const v = g.summary[c.key];
-    html += `<td>${solo ? "" : fmtPct(v, c.kind === "drop" ? 1 : 2)}</td>`;
+    html += `<td>${solo ? "" : (c.kind === "drop" ? fmtDrop(v) : fmtPct(v, 2))}</td>`;
   });
   tr.innerHTML = html;
   return tr;
