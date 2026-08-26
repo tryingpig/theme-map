@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>테마 맵 — 테마별 종목 수익률</title>
+<meta name="description" content="테마별 구성종목의 종가 기준 수익률과 고점대비 위치를 한 표에서 본다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c93a38'/%3E%3Crect x='3' y='9' width='3' height='4' fill='%23fff'/%3E%3Crect x='7' y='6' width='3' height='7' fill='%23fff'/%3E%3Crect x='11' y='3' width='2' height='10' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <h1>테마 맵</h1>
+    <button id="themeToggle" class="ghost" type="button" aria-label="라이트·다크 전환">◐</button>
+  </div>
+  <p class="meta">
+    모두 <strong>종가 기준</strong> ·
+    <span id="asOf">-</span> 종가 ·
+    갱신 <span id="updatedAt">-</span>
+    <span id="sourceBadge" class="badge" hidden></span>
+  </p>
+  <nav id="themeTabs" class="tabs" aria-label="테마 선택"></nav>
+</header>
+
+<main>
+  <section id="hero" class="hero" aria-label="테마 전체 수익률"></section>
+
+  <div class="tablewrap">
+    <table id="grid">
+      <thead>
+        <tr id="headRow"></tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <section id="errors" class="errors" hidden></section>
+
+  <footer class="notes">
+    <p><strong>계산 규칙</strong> — %1일·%5일은 거래일 1일/5일 전 종가 대비, %1개월·%1년은 캘린더 1개월/1년 전 날짜 이하 마지막 거래일 대비. 고점대비는 해당 기간 <em>장중 최고가</em> 대비 현재 종가의 위치.</p>
+    <p>가격은 액면분할이 반영된 종가이며 배당은 포함하지 않습니다(HTS 수익률과 같은 기준). 테마 행은 구성종목 <em>동일가중 지수</em>, 역할 행은 구성종목 <em>단순 평균</em>입니다.</p>
+    <p>정보 제공용이며 투자 권유가 아닙니다.</p>
+  </footer>
+</main>
+
+<div id="tip" class="tip" role="tooltip" hidden></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

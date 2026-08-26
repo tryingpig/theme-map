@@ -1,0 +1,50 @@
+name: Update theme map data
+
+on:
+  schedule:
+    # 평일 18:30 KST (09:30 UTC) — 종가 확정 후 하루 한 번
+    - cron: '30 9 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: theme-map-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Sync universe from Notion   # data/universe.json 생성 (실패 시 기존 파일 유지)
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python scripts/sync_from_notion.py
+
+      - name: Build theme data
+        run: python scripts/build.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "변경 사항 없음 (휴장일 등) — 커밋 생략"
+          else
+            git commit -m "data: update theme map ($(date -u +%Y-%m-%d))"
+            git push
+          fi
