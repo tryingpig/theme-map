@@ -46,6 +46,27 @@ def history(symbol: str):
     return _history_cache[symbol]
 
 
+def load_json(path: Path):
+    """이미 저장된 JSON을 읽는다. 없거나 깨졌으면 None."""
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def summarize(payload: dict) -> dict:
+    """테마 JSON에서 index.json에 실을 요약 한 줄을 뽑는다."""
+    return {
+        "id": payload["theme"]["id"], "name": payload["theme"]["name"],
+        "count": payload["index"]["count"],
+        "as_of": payload["as_of"],
+        **{k: payload["index"].get(k) for k in
+           ("r1d", "r5d", "r1m", "r1y", "from_52w_high", "from_all_high")},
+    }
+
+
 def load_universe() -> dict:
     if not UNIVERSE.exists():
         raise SystemExit(
@@ -108,7 +129,8 @@ def build_theme(theme: str, stocks: list) -> dict:
     now = datetime.now(KST)
     return {
         "theme": {"id": theme, "name": theme},
-        "as_of": rows[0]["as_of"],
+        # 종목마다 마지막 거래일이 다를 수 있다(거래정지 등) — 가장 최근 것을 그 테마의 기준일로 본다.
+        "as_of": max(r["as_of"] for r in rows),
         "updated_at": now.strftime("%Y-%m-%d %H:%M"),
         "period_mode": core.PERIOD_MODE,
         "index": index_metrics,
@@ -136,25 +158,35 @@ def main(argv: list) -> int:
         raise SystemExit(f"유니버스에 없는 테마: {', '.join(unknown)}")
 
     THEMES_DIR.mkdir(parents=True, exist_ok=True)
-    summaries, failed = [], []
+    summaries, failed, stale = [], [], []
     for theme in wanted:
         print(f"  [{theme}] 수집… ({len(by_theme[theme])}종목)")
+        out_path = THEMES_DIR / f"{theme}.json"
+        prev = load_json(out_path)
+
         try:
             payload = build_theme(theme, by_theme[theme])
         except Exception as e:  # noqa: BLE001
             failed.append(theme)
             print(f"  [FAIL] {theme}: {e}", file=sys.stderr)
+            if prev:
+                summaries.append(summarize(prev))   # 기존 값으로 탭은 살려 둔다
             continue
-        (THEMES_DIR / f"{theme}.json").write_text(
+
+        # 데이터 퇴행 방지 — 새로 받은 기준일이 이미 저장된 것보다 이전이면 덮어쓰지 않는다.
+        # 야후가 자정 무렵 최신 거래일 봉을 일시적으로 빼고 주는 일이 있어서(2026-08-27 00:03에 재현),
+        # 그대로 쓰면 사이트가 하루 뒤로 되돌아간다.
+        if prev and payload["as_of"] < prev.get("as_of", ""):
+            stale.append(theme)
+            print(f"  [SKIP] {theme}: 받은 기준일 {payload['as_of']} < 저장된 {prev['as_of']} "
+                  f"— 데이터 퇴행이라 기존 파일 유지", file=sys.stderr)
+            summaries.append(summarize(prev))
+            continue
+
+        out_path.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        summaries.append({
-            "id": theme, "name": theme,
-            "count": payload["index"]["count"],
-            "as_of": payload["as_of"],
-            **{k: payload["index"].get(k) for k in
-               ("r1d", "r5d", "r1m", "r1y", "from_52w_high", "from_all_high")},
-        })
+        summaries.append(summarize(payload))
 
     if not summaries:
         print("모든 테마 실패 — 기존 JSON을 유지합니다.", file=sys.stderr)
@@ -164,14 +196,17 @@ def main(argv: list) -> int:
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "index.json").write_text(json.dumps({
         "updated_at": now.strftime("%Y-%m-%d %H:%M"),
-        "as_of": summaries[0]["as_of"],
+        "as_of": max(s["as_of"] for s in summaries),
         "period_mode": core.PERIOD_MODE,
         "universe_source": universe.get("source", "unknown"),
         "themes": summaries,
         "failed_themes": failed,
+        "stale_themes": stale,
     }, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"  완료 — 테마 {len(summaries)}개" + (f", 실패 {len(failed)}개" if failed else ""))
+    print(f"  완료 — 테마 {len(summaries)}개"
+          + (f", 실패 {len(failed)}개" if failed else "")
+          + (f", 퇴행방지로 유지 {len(stale)}개" if stale else ""))
     return 0
 
 

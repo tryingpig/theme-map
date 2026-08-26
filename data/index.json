@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26 23:53",
+  "updated_at": "2026-08-27 00:07",
   "as_of": "2026-08-26",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -29,5 +29,9 @@
       "from_all_high": null
     }
   ],
-  "failed_themes": []
+  "failed_themes": [],
+  "stale_themes": [
+    "원자력",
+    "데이터센터"
+  ]
 }
