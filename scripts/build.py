@@ -31,6 +31,7 @@ DATA = ROOT / "data"
 THEMES_DIR = DATA / "themes"
 UNIVERSE = DATA / "universe.json"
 KST = timezone(timedelta(hours=9))
+CAP_THRESHOLD = 5000e8      # 시총 5,000억 — 화면의 '시총 5천억 이상만' 필터 기준
 
 _history_cache = {}
 
@@ -92,7 +93,7 @@ def build_theme(theme: str, stocks: list) -> dict:
             "name": st["name"], "code": st["code"], "market": st["market"],
             "symbol": sym, "role": st.get("role") or "기타",
             "desc": st.get("desc", ""), "note": st.get("note", ""),
-            "order": st.get("order"), **m,
+            "order": st.get("order"), "market_cap": core.fetch_market_cap(sym), **m,
         })
         closes.append(df["Close"].dropna())
         print(f"    [OK] {st['name']:10s} {m['close']:>10,.0f}  1일 {m['r1d']:>7}  "
@@ -115,16 +116,27 @@ def build_theme(theme: str, stocks: list) -> dict:
         })
     groups.sort(key=lambda g: g["order"])
 
-    # 대테마 지수 — 동일가중. 최근 5년만 쓴다.
-    # 그 이전 구간은 상장 종목이 한둘뿐이라(원자력이면 2000년대엔 두산에너빌리티 하나) 테마 지수가 아니다.
-    index_series = core.equal_weight_index(closes).tail(core.INDEX_KEEP_DAYS)
-    index_metrics = core.compute_metrics(index_series)
-    index_metrics["basis"] = "동일가중 지수 (구성종목 일간수익률 평균 누적, 최근 5년 구간)"
-    index_metrics.pop("close", None)          # 지수 레벨은 표에 쓰지 않는다
-    # 테마의 '사상 고점'은 구성종목이 계속 바뀌므로 의미가 없다 — 52주만 남긴다.
-    for k in ("from_all_high", "high_all", "high_all_date"):
-        index_metrics[k] = None
-    index_metrics["count"] = len(rows)
+    def make_index(series_list, count):
+        """구성종목 종가들로 동일가중 지수를 만들고 지표를 뽑는다. 최근 5년 구간만 쓴다.
+        그 이전은 상장 종목이 한둘뿐이라(원자력이면 2000년대엔 두산에너빌리티 하나) 테마 지수가 아니다."""
+        if not series_list:
+            return None
+        s = core.equal_weight_index(series_list).tail(core.INDEX_KEEP_DAYS)
+        m = core.compute_metrics(s)
+        m["basis"] = "동일가중 지수 (구성종목 일간수익률 평균 누적, 최근 5년 구간)"
+        m.pop("close", None)          # 지수 레벨은 표에 쓰지 않는다
+        # 테마의 '사상 고점'은 구성종목이 계속 바뀌므로 의미가 없다 — 52주만 남긴다.
+        for k in ("from_all_high", "high_all", "high_all_date"):
+            m[k] = None
+        m["count"] = count
+        return m
+
+    index_metrics = make_index(closes, len(rows))
+
+    # 시총 필터를 켰을 때 쓸 지수. 지수는 시계열이 있어야 만들 수 있어 프론트에서 계산할 수 없다.
+    large = [(r, c) for r, c in zip(rows, closes)
+             if r.get("market_cap") and r["market_cap"] >= CAP_THRESHOLD]
+    index_large = make_index([c for _, c in large], len(large))
 
     now = datetime.now(KST)
     return {
@@ -134,6 +146,8 @@ def build_theme(theme: str, stocks: list) -> dict:
         "updated_at": now.strftime("%Y-%m-%d %H:%M"),
         "period_mode": core.PERIOD_MODE,
         "index": index_metrics,
+        "index_large": index_large,          # 시총 필터를 켰을 때 쓰는 지수
+        "cap_threshold": CAP_THRESHOLD,
         "groups": groups,
         "errors": errors,
     }

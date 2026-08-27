@@ -12,7 +12,7 @@ const COLS = [
 ];
 
 const $ = (id) => document.getElementById(id);
-const state = { index: null, theme: null, data: null, sort: null, dir: -1 };
+const state = { index: null, theme: null, data: null, sort: null, dir: -1, capOnly: false };
 
 /* ── 값 표기 ───────────────────────────────────────────── */
 const fmtPct = (v, d = 2) => (v === null || v === undefined ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(d)}`);
@@ -23,6 +23,27 @@ const fmtDrop = (v) => {
   if (v === null || v === undefined) return "-";
   return v > -0.05 ? "신고가" : v.toFixed(1);
 };
+
+const fmtCap = (v) => (v ? `${Math.round(v / 1e8).toLocaleString("ko-KR")}억` : "-");
+
+/* 시총 필터 — 켜면 기준 미만 종목이 표에서 빠지고, 역할 평균과 테마 수익률도 그 기준으로 다시 계산된다.
+   시총을 모르는 종목(조회 실패)은 임의로 지우지 않고 남긴다. */
+function passesCap(st) {
+  if (!state.capOnly) return true;
+  const cut = (state.data && state.data.cap_threshold) || 5000e8;
+  return st.market_cap == null || st.market_cap >= cut;
+}
+
+/* 값이 있는 것만 평균 — 역할 그룹 소계를 필터 결과로 다시 낼 때 쓴다. */
+function avgMetrics(rows) {
+  const keys = ["r1d", "r5d", "r1m", "r1y", "from_52w_high", "from_all_high"];
+  const out = { count: rows.length };
+  keys.forEach((k) => {
+    const vals = rows.map((r) => r[k]).filter((v) => v !== null && v !== undefined);
+    out[k] = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  });
+  return out;
+}
 
 /* ── 히트맵 색 단계 ─────────────────────────────────────
    컬럼마다 스케일이 따로다. 1일(±15%)과 1년(±400%)을 한 스케일로 칠하면
@@ -60,7 +81,8 @@ function renderTabs() {
 
 function renderHero() {
   const d = state.data;
-  const ix = d.index;
+  // 지수는 시계열이 있어야 만들 수 있어 프론트에서 못 만든다 — 빌드가 두 벌을 실어 보낸다.
+  const ix = (state.capOnly && d.index_large) ? d.index_large : d.index;
   const stats = [
     ["%1일", ix.r1d], ["%5일", ix.r5d], ["%1개월", ix.r1m], ["%1년", ix.r1y],
     ["52주 고점대비", ix.from_52w_high],
@@ -98,7 +120,7 @@ function renderHead() {
 }
 
 function allStocks() {
-  return state.data.groups.flatMap((g) => g.stocks);
+  return state.data.groups.flatMap((g) => g.stocks).filter(passesCap);
 }
 
 function scales() {
@@ -132,13 +154,14 @@ function stockRow(st, sc, showRole) {
   return tr;
 }
 
-function groupRow(g) {
+function groupRow(g, members) {
   const tr = document.createElement("tr");
   tr.className = "group";
-  const solo = g.summary.count === 1;   // 1종목 그룹의 '평균'은 바로 아랫줄과 같은 값이라 지운다
-  let html = `<td>${g.role}<span class="gcount">${g.summary.count}종목${solo ? "" : " · 평균"}</span></td><td></td>`;
+  const summary = state.capOnly ? avgMetrics(members) : g.summary;
+  const solo = summary.count === 1;   // 1종목 그룹의 '평균'은 바로 아랫줄과 같은 값이라 지운다
+  let html = `<td>${g.role}<span class="gcount">${summary.count}종목${solo ? "" : " · 평균"}</span></td><td></td>`;
   COLS.forEach((c) => {
-    const v = g.summary[c.key];
+    const v = summary[c.key];
     html += `<td>${solo ? "" : (c.kind === "drop" ? fmtDrop(v) : fmtPct(v, 2))}</td>`;
   });
   tr.innerHTML = html;
@@ -152,8 +175,10 @@ function renderBody() {
 
   if (!state.sort) {
     state.data.groups.forEach((g) => {
-      tb.appendChild(groupRow(g));
-      g.stocks.forEach((st) => tb.appendChild(stockRow(st, sc, false)));
+      const members = g.stocks.filter(passesCap);
+      if (!members.length) return;          // 필터에 다 걸린 그룹은 통째로 감춘다
+      tb.appendChild(groupRow(g, members));
+      members.forEach((st) => tb.appendChild(stockRow(st, sc, false)));
     });
     return;
   }
@@ -200,6 +225,7 @@ function attachTip(tr, st) {
   tr.addEventListener("mouseenter", () => {
     tip.innerHTML = `<b>${st.name}</b> <span class="t-sub">${st.symbol}</span><br>
       <span class="t-sub">${st.desc || "-"}</span><br>
+      <span class="t-sub">시총 ${fmtCap(st.market_cap)}</span><br>
       <span class="t-sub">52주 고점 ${fmtWon(st.high_52w)} (${st.high_52w_date || "-"})</span><br>
       <span class="t-sub">사상 고점 ${fmtWon(st.high_all)} (${st.high_all_date || "-"})</span>
       ${st.note ? `<br><span class="t-sub">⚑ ${st.note}</span>` : ""}`;
@@ -234,7 +260,31 @@ async function selectTheme(id) {
   renderHead();
   renderBody();
   renderLegend();
+  renderCapNote();
   renderErrors();
+}
+
+function renderCapNote() {
+  const all = state.data.groups.flatMap((g) => g.stocks);
+  const cut = state.data.cap_threshold || 5000e8;
+  const under = all.filter((s) => s.market_cap != null && s.market_cap < cut);
+  $("capNote").textContent = under.length
+    ? (state.capOnly ? `${under.length}종목 제외됨` : `기준 미만 ${under.length}종목`)
+    : "";
+}
+
+function initCapFilter() {
+  const box = $("capOnly");
+  try { state.capOnly = localStorage.getItem("theme-map:capOnly") === "1"; } catch (e) { /* noop */ }
+  box.checked = state.capOnly;
+  box.onchange = () => {
+    state.capOnly = box.checked;
+    try { localStorage.setItem("theme-map:capOnly", box.checked ? "1" : "0"); } catch (e) { /* noop */ }
+    renderHero();
+    renderBody();
+    renderLegend();
+    renderCapNote();
+  };
 }
 
 function initThemeToggle() {
@@ -253,6 +303,7 @@ function initThemeToggle() {
 
 async function init() {
   initThemeToggle();
+  initCapFilter();
   state.index = await fetch("data/index.json").then((r) => r.json());
   if (state.index.universe_source !== "notion") {
     const b = $("sourceBadge");

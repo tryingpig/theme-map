@@ -228,3 +228,15 @@ td.drop .v { position: relative; }
   .top { padding-top: 18px; }
   .hero-stats { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* 시총 필터 */
+.filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 0; }
+.switch {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink-2);
+  border-radius: 999px; padding: 5px 13px 5px 10px; font-size: 13px; user-select: none;
+}
+.switch:hover { border-color: var(--accent); color: var(--accent); }
+.switch input { accent-color: var(--accent); width: 14px; height: 14px; margin: 0; cursor: pointer; }
+.switch:has(input:checked) { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.filter-note { font-size: 12px; color: var(--muted); }
