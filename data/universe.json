@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-27 00:34",
+  "updated_at": "2026-08-27 11:21",
   "source": "notion",
   "stocks": [
     {
@@ -299,6 +299,331 @@
       "desc": "알루미늄박",
       "note": "",
       "order": 140,
+      "active": true
+    },
+    {
+      "name": "삼성전자",
+      "code": "005930",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "종합반도체",
+      "desc": "메모리·파운드리·세트",
+      "note": "",
+      "order": 210,
+      "active": true
+    },
+    {
+      "name": "SK하이닉스",
+      "code": "000660",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "종합반도체",
+      "desc": "D램·HBM·낸드",
+      "note": "",
+      "order": 211,
+      "active": true
+    },
+    {
+      "name": "DB하이텍",
+      "code": "000990",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "종합반도체",
+      "desc": "8인치 파운드리(아날로그·전력반도체)",
+      "note": "",
+      "order": 212,
+      "active": true
+    },
+    {
+      "name": "삼성전기",
+      "code": "009150",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "MLCC·반도체 패키지기판(FC-BGA)",
+      "note": "",
+      "order": 220,
+      "active": true
+    },
+    {
+      "name": "LG이노텍",
+      "code": "011070",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "반도체 기판·카메라모듈",
+      "note": "",
+      "order": 221,
+      "active": true
+    },
+    {
+      "name": "이수페타시스",
+      "code": "007660",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "고다층 MLB(AI 가속기용)",
+      "note": "",
+      "order": 222,
+      "active": true
+    },
+    {
+      "name": "대덕전자",
+      "code": "353200",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "패키지기판·MLB",
+      "note": "",
+      "order": 223,
+      "active": true
+    },
+    {
+      "name": "코리아써키트",
+      "code": "007810",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "인쇄회로기판·패키지기판",
+      "note": "",
+      "order": 224,
+      "active": true
+    },
+    {
+      "name": "티엘비",
+      "code": "356860",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "메모리 모듈용 PCB",
+      "note": "",
+      "order": 225,
+      "active": true
+    },
+    {
+      "name": "해성디에스",
+      "code": "195870",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "기판·PCB",
+      "desc": "리드프레임·패키지기판",
+      "note": "",
+      "order": 226,
+      "active": true
+    },
+    {
+      "name": "한미반도체",
+      "code": "042700",
+      "market": "KS",
+      "themes": [
+        "반도체"
+      ],
+      "role": "후공정·패키징",
+      "desc": "TC본더(HBM 적층 장비)",
+      "note": "",
+      "order": 230,
+      "active": true
+    },
+    {
+      "name": "피에스케이홀딩스",
+      "code": "031980",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "후공정·패키징",
+      "desc": "패키징 디스컴·리플로우 장비",
+      "note": "",
+      "order": 231,
+      "active": true
+    },
+    {
+      "name": "하나마이크론",
+      "code": "067310",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "후공정·패키징",
+      "desc": "반도체 패키징·테스트 외주(OSAT)",
+      "note": "",
+      "order": 232,
+      "active": true
+    },
+    {
+      "name": "테크윙",
+      "code": "089030",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "후공정·패키징",
+      "desc": "테스트 핸들러·범용테스터",
+      "note": "",
+      "order": 233,
+      "active": true
+    },
+    {
+      "name": "주성엔지니어링",
+      "code": "036930",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "전공정 장비",
+      "desc": "증착(ALD·CVD) 장비",
+      "note": "",
+      "order": 240,
+      "active": true
+    },
+    {
+      "name": "원익IPS",
+      "code": "240810",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "전공정 장비",
+      "desc": "증착·식각 장비",
+      "note": "",
+      "order": 241,
+      "active": true
+    },
+    {
+      "name": "피에스케이",
+      "code": "319660",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "전공정 장비",
+      "desc": "감광액 제거(PR Strip) 장비",
+      "note": "",
+      "order": 242,
+      "active": true
+    },
+    {
+      "name": "테스",
+      "code": "095610",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "전공정 장비",
+      "desc": "식각·증착 장비",
+      "note": "",
+      "order": 243,
+      "active": true
+    },
+    {
+      "name": "티씨케이",
+      "code": "064760",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "소재",
+      "desc": "실리콘카바이드(SiC) 식각 부품",
+      "note": "",
+      "order": 250,
+      "active": true
+    },
+    {
+      "name": "솔브레인",
+      "code": "357780",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "소재",
+      "desc": "식각액·CMP 슬러리",
+      "note": "",
+      "order": 251,
+      "active": true
+    },
+    {
+      "name": "동진쎄미켐",
+      "code": "005290",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "소재",
+      "desc": "감광액(PR)·식각액",
+      "note": "",
+      "order": 252,
+      "active": true
+    },
+    {
+      "name": "에스앤에스텍",
+      "code": "101490",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "소재",
+      "desc": "블랭크마스크·펐리클",
+      "note": "",
+      "order": 253,
+      "active": true
+    },
+    {
+      "name": "리노공업",
+      "code": "058470",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "부품·모듈",
+      "desc": "테스트 프로브용 리노핀·소켓",
+      "note": "",
+      "order": 260,
+      "active": true
+    },
+    {
+      "name": "브이엠",
+      "code": "089970",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "부품·모듈",
+      "desc": "반도체 장비 부품·모듈",
+      "note": "",
+      "order": 261,
+      "active": true
+    },
+    {
+      "name": "한양디지텍",
+      "code": "078350",
+      "market": "KQ",
+      "themes": [
+        "반도체"
+      ],
+      "role": "부품·모듈",
+      "desc": "메모리 모듈·SSD",
+      "note": "",
+      "order": 262,
       "active": true
     }
   ]

@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+# legacy(브랜치 직접 서빙) 방식이 2026-08-26에 'building' 상태로 1시간 넘게 멈춰
+# 데이터 갱신이 사이트에 반영되지 않았다. 잡이 하나도 생성되지 않는 startup_failure라
+# 로그도 남지 않았다. 그래서 배포를 이 레포 안의 워크플로로 끌고 왔다 — 실패하면 로그가 남는다.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 데이터 갱신 워크플로가 커밋을 밀어 배포가 연달아 걸릴 때, 최신 것만 살린다.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

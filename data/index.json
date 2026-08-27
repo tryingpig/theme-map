@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-27 00:34",
+  "updated_at": "2026-08-27 11:26",
   "as_of": "2026-08-26",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -27,11 +27,20 @@
       "r1y": 183.36,
       "from_52w_high": 0.0,
       "from_all_high": null
+    },
+    {
+      "id": "반도체",
+      "name": "반도체",
+      "count": 25,
+      "as_of": "2026-08-26",
+      "r1d": -0.94,
+      "r5d": 0.7,
+      "r1m": 7.72,
+      "r1y": 254.85,
+      "from_52w_high": -27.55,
+      "from_all_high": null
     }
   ],
   "failed_themes": [],
-  "stale_themes": [
-    "원자력",
-    "데이터센터"
-  ]
+  "stale_themes": []
 }

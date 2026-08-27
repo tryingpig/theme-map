@@ -15,9 +15,13 @@ PERIOD_MODE를 "trading"으로 바꾸면 거래일(21/252) 기준으로도 계�
 """
 
 import time
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import yfinance as yf
+
+KST = timezone(timedelta(hours=9))
+MARKET_CLOSE = (15, 40)    # 정규장 15:30 + 종가 단일가 여유
 
 PERIOD_MODE = "calendar"   # "calendar" = 원본 화면과 동일 / "trading" = 거래일 21·252일
 TRADING_1M = 21            # PERIOD_MODE="trading"일 때만 사용
@@ -36,6 +40,7 @@ def fetch_history(symbol: str, retries: int = 3) -> pd.DataFrame:
             )
             if df is not None and not df.empty and "Close" in df.columns:
                 df = df[df["Close"] > 0]
+                df = drop_unsettled_today(df)
                 if not df.empty:
                     return df
             last_err = f"빈 데이터 (시도 {attempt})"
@@ -43,6 +48,32 @@ def fetch_history(symbol: str, retries: int = 3) -> pd.DataFrame:
             last_err = str(e)
         time.sleep(2 * attempt)
     raise RuntimeError(f"{symbol} 수집 실패: {last_err}")
+
+
+def drop_unsettled_today(df: pd.DataFrame) -> pd.DataFrame:
+    """장 마감 전이면 당일 봉을 버린다.
+
+    야후는 장중에도 그날 봉을 준다. 그대로 쓰면 '종가 기준'이라고 써 놓고 장중 가격을
+    보여주게 된다(2026-08-27 11:19에 재현 — 8/27 장중가가 종가 자리에 들어갔다).
+    """
+    if df.empty:
+        return df
+    now = datetime.now(KST)
+    if df.index[-1].date() == now.date() and (now.hour, now.minute) < MARKET_CLOSE:
+        return df.iloc[:-1]
+    return df
+
+
+def fetch_market_cap(symbol: str):
+    """시총(원). 화면의 '시총 5천억 이상만' 필터에 쓴다.
+
+    시총은 매일 바뀌므로 노션에 적어 두지 않고 수집할 때 같이 받는다.
+    실패해도 수집 전체를 죽이지 않는다 — None이면 프론트에서 필터 대상에서 빠진다.
+    """
+    try:
+        return yf.Ticker(symbol).info.get("marketCap")
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _pct(now, then):
