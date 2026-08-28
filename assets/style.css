@@ -367,3 +367,11 @@ h1 .home::before { content: "← "; color: var(--muted); font-weight: 400; }
 #rank td.rs .rs-sub { display: block; color: var(--muted); font-size: 11.5px; }
 #rank td.rs.up .rs-d { color: var(--up-4); }
 #rank td.rs.dn .rs-d { color: var(--dn-4); }
+
+/* '우위 전환'이 무엇이고 무엇이 아닌지 — 마커만 찍어 두면 매수 신호로 읽힌다.
+   화면에서 판단의 근거와 한계를 같이 말해야 한다. */
+.card.explain h2 { font-size: 14px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+.card.explain p { margin: 0 0 7px; font-size: 12.5px; line-height: 1.65; color: var(--ink-2); }
+.card.explain p:last-child { margin-bottom: 0; }
+.card.explain b { color: var(--ink); font-weight: 600; }
+.card.explain em { font-style: normal; color: var(--ink); }
