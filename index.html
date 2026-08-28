@@ -3,10 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>테마 맵 — 테마별 종목 수익률</title>
-<meta name="description" content="테마별 구성종목의 종가 기준 수익률과 고점대비 위치를 한 표에서 본다.">
+<title>테마 맵 — 시장 대비 테마 수익률</title>
+<meta name="description" content="코스피·코스닥과 테마 지수를 같은 기준으로 비교한다. 어떤 테마가 시장을 이기고 있는지 한 화면에서 본다.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c93a38'/%3E%3Crect x='3' y='9' width='3' height='4' fill='%23fff'/%3E%3Crect x='7' y='6' width='3' height='7' fill='%23fff'/%3E%3Crect x='11' y='3' width='2' height='10' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/style.css">
+<script>
+  // 예전 링크(index.html?theme=원자력)는 이제 상세 화면이다.
+  (function () {
+    var t = new URL(location.href).searchParams.get("theme");
+    if (t) location.replace("theme.html?theme=" + encodeURIComponent(t));
+  })();
+</script>
 </head>
 <body>
 <header class="top">
@@ -15,46 +22,48 @@
     <button id="themeToggle" class="ghost" type="button" aria-label="라이트·다크 전환">◐</button>
   </div>
   <p class="meta">
-    모두 <strong>종가 기준</strong> ·
+    <strong>종가 기준</strong> ·
     <span id="asOf">-</span> 종가 ·
     갱신 <span id="updatedAt">-</span>
-    <span id="sourceBadge" class="badge" hidden></span>
   </p>
-  <nav id="themeTabs" class="tabs" aria-label="테마 선택"></nav>
 
-  <div class="filters">
-    <label class="switch">
-      <input type="checkbox" id="capOnly">
-      <span>시총 5,000억 이상만</span>
-    </label>
-    <span class="filter-note" id="capNote"></span>
+  <div class="controls">
+    <div class="segs" id="periods" role="group" aria-label="기간 선택"></div>
+    <div class="segs" id="modes" role="group" aria-label="표시 방식"></div>
   </div>
 </header>
 
 <main>
-  <section id="hero" class="hero" aria-label="테마 전체 수익률"></section>
+  <section class="card">
+    <div class="card-head">
+      <h2>시장 대비 테마 수익률</h2>
+      <span class="card-note" id="chartNote"></span>
+    </div>
+    <div id="chart" class="chart-host"></div>
+    <div id="legend" class="chips" aria-label="계열 표시 전환"></div>
+  </section>
 
-  <div class="tablewrap">
-    <table id="grid">
-      <thead>
-        <tr id="headRow"></tr>
-      </thead>
-      <tbody id="body"></tbody>
-    </table>
-  </div>
-
-  <div class="legend" id="legend"></div>
-
-  <section id="errors" class="errors" hidden></section>
+  <section class="card">
+    <div class="card-head">
+      <h2>순위</h2>
+      <span class="card-note">테마 이름을 누르면 구성종목 화면으로 갑니다</span>
+    </div>
+    <div class="tablewrap">
+      <table id="rank">
+        <thead><tr id="rankHead"></tr></thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+    </div>
+  </section>
 
   <footer class="notes">
-    <p><strong>계산 규칙</strong> — %1일·%5일은 거래일 1일/5일 전 종가 대비, %1개월·%1년은 캘린더 1개월/1년 전 날짜 이하 마지막 거래일 대비. 고점대비는 해당 기간 <em>장중 최고가</em> 대비 현재 종가의 위치.</p>
-    <p>가격은 액면분할이 반영된 종가이며 배당은 포함하지 않습니다(HTS 수익률과 같은 기준). 테마 행은 구성종목 <em>동일가중 지수</em>, 역할 행은 구성종목 <em>단순 평균</em>입니다.</p>
-    <p>정보 제공용이며 투자 권유가 아닙니다.</p>
+    <p><strong>읽는 법</strong> — 차트의 0%는 선택한 기간의 첫 거래일 종가입니다. <em>코스피 대비</em>로 바꾸면 코스피가 0% 평평한 선이 되고, 그 위로 올라간 테마가 그 기간 동안 시장을 이긴 테마입니다.</p>
+    <p>테마 수익률은 구성종목 <em>동일가중 지수</em>(일간수익률 평균의 누적)입니다. 종목 수가 다른 테마끼리도 비교되도록 시가총액이 아니라 동일가중으로 만들었고, 배당은 포함하지 않습니다. 지수는 매일 그날 구성종목의 평균 등락률을 이어 붙여 <em>적립</em>합니다 — 한 번 기록된 날의 값은 다시 계산하지 않으므로, 나중에 종목을 넣거나 빼도 과거 수익률은 그대로 남습니다(구성 변경은 변경한 날부터 반영). 맨 처음 깐 구간만 현재 구성으로 소급 계산한 값입니다.</p>
+    <p>%1일·%5일은 거래일 기준, %1개월·%1년은 캘린더 기준입니다. 정보 제공용이며 투자 권유가 아닙니다.</p>
   </footer>
 </main>
 
-<div id="tip" class="tip" role="tooltip" hidden></div>
-<script src="assets/app.js"></script>
+<script src="assets/chart.js"></script>
+<script src="assets/main.js"></script>
 </body>
 </html>

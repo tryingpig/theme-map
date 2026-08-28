@@ -243,6 +243,92 @@ function attachTip(tr, st) {
   tr.addEventListener("mouseleave", () => { tip.hidden = true; });
 }
 
+/* ── 시장 대비 차트 ─────────────────────────────────────
+   상세 화면에서도 "이 테마가 코스피를 이겼나"를 바로 볼 수 있어야 한다.
+   테마 지수 시계열은 그 테마 JSON에, 코스피·코스닥은 data/series.json에 있다. */
+const chartState = { period: "1y", mode: "abs", market: null };
+const MARKET_STYLE = {
+  KOSPI: { color: "var(--mkt-1)", dash: "", kind: "market" },
+  KOSDAQ: { color: "var(--mkt-2)", dash: "5 4", kind: "market" },
+};
+
+async function marketSeries() {
+  if (!chartState.market) {
+    chartState.market = await fetch("data/series.json").then((r) => r.json());
+  }
+  return chartState.market;
+}
+
+/* 테마 시계열을 시장 날짜축에 맞춘다.
+   퇴행방지로 갱신을 건너뛴 테마는 축이 하루 어긋나 있을 수 있어 **날짜로** 맞춘다. */
+function onMarketAxis(themeSeries, values, dates) {
+  const lut = new Map(themeSeries.dates.map((d, i) => [d, values[i]]));
+  return dates.map((d) => (lut.has(d) ? lut.get(d) : null));
+}
+
+function themeColor() {
+  const i = (state.index.themes || []).findIndex((t) => t.id === state.theme);
+  return `var(--s${(Math.max(0, i) % 8) + 1})`;
+}
+
+function renderChartControls() {
+  const seg = (on, data, label) =>
+    `<button type="button" class="seg${on ? " on" : ""}" ${data}>${label}</button>`;
+  $("periods").innerHTML = Chart.PERIODS
+    .map((p) => seg(p.id === chartState.period, `data-p="${p.id}"`, p.label)).join("");
+  $("periods").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      chartState.period = b.dataset.p;
+      try { localStorage.setItem("theme-map:main:period", chartState.period); } catch (e) { /* noop */ }
+      renderChart();
+    };
+  });
+  $("modes").innerHTML = [["abs", "절대 수익률"], ["rel", "코스피 대비"]]
+    .map(([id, label]) => seg(id === chartState.mode, `data-m="${id}"`, label)).join("");
+  $("modes").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      chartState.mode = b.dataset.m;
+      try { localStorage.setItem("theme-map:main:mode", chartState.mode); } catch (e) { /* noop */ }
+      renderChart();
+    };
+  });
+}
+
+function renderChart() {
+  const card = document.querySelector(".chart-card");
+  const ser = state.data.series;
+  const mkt = chartState.market;
+  if (!ser || !mkt) { if (card) card.hidden = true; return; }
+  card.hidden = false;
+
+  // 시총 필터를 켜면 차트도 그 기준의 지수로 바꾼다 — 표와 다른 얘기를 하면 안 된다.
+  const values = (state.capOnly && ser.index_large) ? ser.index_large : ser.index;
+  const dates = mkt.dates;
+  const line = {
+    id: state.theme, name: state.data.theme.name, kind: "theme",
+    color: themeColor(), values: onMarketAxis(ser, values, dates),
+  };
+  const markets = mkt.markets.map((m) => ({
+    id: m.id, name: m.name, values: m.values, ...MARKET_STYLE[m.id],
+  }));
+
+  const from = Chart.fromIndex(dates, Chart.PERIODS.find((p) => p.id === chartState.period));
+
+  renderChartControls();
+  Chart.render($("chart"), {
+    dates, from, mode: chartState.mode, baseId: "KOSPI",
+    height: innerWidth < 640 ? 260 : 320,
+    series: [...markets, line],
+  });
+
+  $("legend2").innerHTML = [line, ...markets].map((s) =>
+    `<span class="chip on fixed"><i style="background:${s.color}${s.dash ? ";opacity:.75" : ""}"></i>${s.name}</span>`
+  ).join("");
+  $("chartNote").textContent = chartState.mode === "rel"
+    ? `${dates[from]} 이후 코스피 대비 초과수익 · 0%선이 코스피`
+    : `${dates[from]} 종가 = 0% 기준`;
+}
+
 /* ── 로딩 ──────────────────────────────────────────────── */
 async function selectTheme(id) {
   state.theme = id;
@@ -262,6 +348,8 @@ async function selectTheme(id) {
   renderLegend();
   renderCapNote();
   renderErrors();
+  await marketSeries().catch(() => null);
+  renderChart();
 }
 
 function renderCapNote() {
@@ -284,6 +372,7 @@ function initCapFilter() {
     renderBody();
     renderLegend();
     renderCapNote();
+    renderChart();
   };
 }
 
@@ -304,6 +393,13 @@ function initThemeToggle() {
 async function init() {
   initThemeToggle();
   initCapFilter();
+  try {
+    chartState.period = localStorage.getItem("theme-map:main:period") || chartState.period;
+    chartState.mode = localStorage.getItem("theme-map:main:mode") || chartState.mode;
+  } catch (e) { /* noop */ }
+  if (!Chart.PERIODS.some((p) => p.id === chartState.period)) chartState.period = "1y";
+  let rt = null;
+  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderChart, 160); });
   state.index = await fetch("data/index.json").then((r) => r.json());
   if (state.index.universe_source !== "notion") {
     const b = $("sourceBadge");

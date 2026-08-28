@@ -240,3 +240,118 @@ td.drop .v { position: relative; }
 .switch input { accent-color: var(--accent); width: 14px; height: 14px; margin: 0; cursor: pointer; }
 .switch:has(input:checked) { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 .filter-note { font-size: 12px; color: var(--muted); }
+
+/* ── 시장 비교 차트 ─────────────────────────────────────
+   계열 색은 dataviz 검증 팔레트(라이트·다크 모두 6개 검사 통과).
+   테마 순서로 고정 배정하며 순위에 따라 바뀌지 않는다.
+   시장(코스피·코스닥)은 색을 쓰지 않는다 — 비교 대상이 아니라 기준선이라서,
+   무채색 + 점선으로 두고 색은 테마에만 준다. */
+:root {
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --mkt-1: #52514e; --mkt-2: #898781;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --mkt-1: #c3c2b7; --mkt-2: #898781;
+  }
+}
+:root[data-theme="dark"] {
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --mkt-1: #c3c2b7; --mkt-2: #898781;
+}
+
+.card {
+  margin: 18px 0 0; padding: 14px 16px 16px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px;
+}
+.card-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.card-head h2 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.card-note { font-size: 12px; color: var(--muted); }
+.card .tablewrap { border: none; border-radius: 0; background: none; }
+
+/* 기간·표시 방식 버튼 */
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 0; }
+.segs { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden; }
+.seg {
+  border: none; background: var(--card); color: var(--ink-2);
+  padding: 6px 13px; font-size: 13px; cursor: pointer; font-weight: 500;
+  border-right: 1px solid var(--line);
+}
+.seg:last-child { border-right: none; }
+.seg:hover { color: var(--accent); }
+.seg.on { background: var(--ink); color: var(--surface); font-weight: 600; }
+
+/* 계열 칩 — 눌러서 켜고 끈다(시장 두 줄은 항상 켜져 있다) */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  border-radius: 999px; padding: 4px 11px; font-size: 12.5px; cursor: pointer;
+}
+.chip i { width: 9px; height: 9px; border-radius: 2px; display: block; }
+.chip.on { color: var(--ink-2); border-color: var(--rule); font-weight: 600; }
+.chip.fixed { cursor: default; }
+.chip:not(.fixed):hover { border-color: var(--accent); color: var(--accent); }
+
+.chart-host { position: relative; }
+.chart-host svg.chart { display: block; max-width: 100%; overflow: visible; }
+.chart-empty { color: var(--muted); font-size: 13px; padding: 30px 4px; text-align: center; }
+
+.grid { stroke: var(--line); stroke-width: 1; }
+.grid.zero { stroke: var(--rule); }
+.baseline { stroke: var(--rule); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.ytick { fill: var(--muted); font-size: 11px; text-anchor: end; }
+.xtick { fill: var(--muted); font-size: 11px; text-anchor: middle; }
+.line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.line.mkt { stroke-width: 1.5; }
+.endlabel { font-size: 11.5px; font-weight: 600; dominant-baseline: middle; }
+.endlabel.base { fill: var(--muted); font-weight: 500; }
+.crossline { stroke: var(--rule); stroke-width: 1; }
+.cross[hidden] { display: none; }
+.hit { fill: transparent; }
+
+.chart-tip {
+  position: absolute; z-index: 20; pointer-events: none;
+  background: var(--card); color: var(--ink); border: 1px solid var(--rule);
+  border-radius: 9px; padding: 8px 10px; font-size: 12.5px; line-height: 1.5;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.16); min-width: 150px;
+}
+.chart-tip .tip-date { color: var(--muted); font-size: 11.5px; margin-bottom: 4px; }
+.chart-tip .tip-row { display: flex; align-items: center; gap: 7px; }
+.chart-tip .tip-row i { width: 8px; height: 8px; border-radius: 2px; display: block; }
+.chart-tip .tip-name { flex: 1; }
+.chart-tip .tip-v { font-variant-numeric: tabular-nums; font-weight: 600; }
+.chart-tip .tip-v.up { color: var(--up-4); }
+.chart-tip .tip-v.dn { color: var(--dn-4); }
+
+/* 메인 순위표 */
+#rank thead th { cursor: default; background: var(--card); }
+#rank thead th:hover { color: var(--muted); }
+#rank tbody tr.theme { cursor: pointer; }
+#rank tbody tr.theme:hover td.name { background: var(--surface); color: var(--accent); }
+#rank td.name { font-weight: 600; }
+#rank td.name .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
+#rank td.name .tag {
+  margin-left: 7px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--rule);
+  font-size: 11px; color: var(--muted); font-weight: 400;
+}
+#rank td.name .go { margin-left: 7px; color: var(--muted); font-weight: 400; }
+#rank tbody tr.mkt td { background: var(--surface); }
+#rank td.sub { color: var(--muted); font-size: 12.5px; }
+#rank td.muted { color: var(--muted); }
+
+/* 상세 화면 — 제목이 메인으로 가는 링크 */
+h1 .home { color: inherit; text-decoration: none; }
+h1 .home:hover { color: var(--accent); }
+h1 .home::before { content: "← "; color: var(--muted); font-weight: 400; }
+.head-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 시장(코스피·코스닥) 행은 히트맵 색을 입히지 않는다 — 경쟁자가 아니라 기준선이라서,
+   테마들끼리의 강약이 무채색 기준행을 사이에 두고 읽히게 둔다. */

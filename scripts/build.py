@@ -10,6 +10,15 @@
   · 대테마 = 구성종목 동일가중 지수(core.equal_weight_index)에서 뽑은 지표 — 테마 자체의 수익률
   · 역할   = 구성종목 지표의 단순 평균 — "오늘은 정비주가 갔고 EPC는 안 갔다"를 보는 축
 표시 순서는 별도 필드 없이 정렬순서(숫자)로 정한다. 역할 그룹 순서 = 그룹 내 정렬순서 최솟값.
+
+테마 지수의 **일별 시계열**도 같이 저장한다(data/series.json). 코스피·코스닥을 같은 날짜축에
+올려 두어야 '이 테마가 시장을 이기는지'를 화면에서 바로 비교할 수 있다.
+
+시계열은 **적립**이다 — 매 실행마다 전 구간을 다시 계산하지 않고, 이미 저장된 날은 그대로 두고
+새 거래일만 이어 붙인다(core.accumulate). 그래야 종목을 하나 넣고 빼도 과거 기록이 흔들리지 않는다.
+처음 한 번만 core.BACKFILL_DAYS 만큼 소급해 깐다.
+
+  python scripts/build.py --rebuild-series   # 적립분을 버리고 현재 구성으로 전 구간 다시 계산(비상용)
 """
 
 import io
@@ -17,6 +26,8 @@ import json
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+import pandas as pd
 
 import core
 
@@ -76,7 +87,65 @@ def load_universe() -> dict:
     return json.loads(UNIVERSE.read_text(encoding="utf-8"))
 
 
-def build_theme(theme: str, stocks: list) -> dict:
+def collect_markets():
+    """코스피·코스닥 지수를 받아 지표와 종가 시계열을 만든다.
+
+    **첫 시장(코스피)의 거래일이 모든 시계열의 공통 날짜축**이다. 테마 지수도 이 축에 맞춰
+    붙여야 같은 x축 위에서 "테마가 시장을 이겼나"를 볼 수 있다. 코스닥은 휴장일이 코스피와
+    같으므로 축을 따로 두지 않는다(다르면 core.align이 직전 값으로 메운다).
+    """
+    rows, closes = [], {}
+    for mid, name, symbol in core.MARKETS:
+        df = core.fetch_history(symbol)
+        close = df["Close"].dropna()
+        close.index = pd.to_datetime([d.strftime("%Y-%m-%d") for d in close.index])
+        m = core.compute_metrics(df["Close"], df.get("High"))
+        rows.append({"id": mid, "name": name, "symbol": symbol, **m})
+        closes[mid] = close
+        print(f"    [OK] {name:6s} {m['close']:>10,.2f}  1일 {m['r1d']:>7}  1년 {m['r1y']:>8}")
+    return rows, closes
+
+
+def load_store() -> dict:
+    """지금까지 적립된 시계열(data/series.json). 없으면 빈 상자 — 그때는 소급 구간을 깐다."""
+    raw = load_json(DATA / "series.json") or {}
+    values = {}
+    for row in (raw.get("markets") or []) + (raw.get("themes") or []):
+        values[row["id"]] = row["values"]
+    return {"dates": raw.get("dates") or [], "values": values, "as_of": raw.get("as_of", "")}
+
+
+def build_axis(store: dict, market_dates: list, rebuild: bool) -> list:
+    """날짜축은 **append-only**다. 이미 적립한 날은 지우지 않고 새 거래일만 뒤에 붙인다.
+
+    처음이거나 --rebuild-series일 때만 최근 BACKFILL_DAYS 거래일로 축을 새로 깐다.
+    """
+    if rebuild or not store["dates"]:
+        return market_dates[-core.BACKFILL_DAYS:]
+    last = store["dates"][-1]
+    return store["dates"] + [d for d in market_dates if d > last]
+
+
+def stored_map(dates: list, values: list) -> dict:
+    """{날짜: 값} — 적립분을 그대로 다시 쓰기 위한 조회표."""
+    return {d: v for d, v in zip(dates or [], values or []) if v is not None}
+
+
+def series_on_axis(payload: dict, axis_dates: list, key: str = "index"):
+    """테마 JSON에 저장된 시계열을 현재 축에 다시 맞춘다.
+
+    퇴행방지로 갱신을 건너뛴 테마는 어제 축에 맞춰진 배열을 갖고 있다. 길이로 잘라 붙이면
+    하루씩 밀리므로 반드시 **날짜로** 맞춘다.
+    """
+    ser = (payload or {}).get("series") or {}
+    dates, values = ser.get("dates"), ser.get(key)
+    if not dates or not values:
+        return None
+    lut = dict(zip(dates, values))
+    return [lut.get(d) for d in axis_dates]
+
+
+def build_theme(theme: str, stocks: list, axis_dates: list, prev: dict, rebuild: bool) -> dict:
     """대테마 하나를 통째로 계산한다. 실패 종목은 건너뛰고 errors에 남긴다."""
     rows, closes, errors = [], [], []
 
@@ -116,27 +185,39 @@ def build_theme(theme: str, stocks: list) -> dict:
         })
     groups.sort(key=lambda g: g["order"])
 
-    def make_index(series_list, count):
-        """구성종목 종가들로 동일가중 지수를 만들고 지표를 뽑는다. 최근 5년 구간만 쓴다.
-        그 이전은 상장 종목이 한둘뿐이라(원자력이면 2000년대엔 두산에너빌리티 하나) 테마 지수가 아니다."""
+    pser = (prev or {}).get("series") or {}
+    pdates = pser.get("dates") or []
+
+    def make_index(series_list, count, stored):
+        """구성종목 종가들로 동일가중 지수를 만들고, **적립분에 오늘치를 이어 붙인다**.
+
+        지표는 새로 계산한 값이 아니라 적립된 시계열에서 뽑는다 — 그래야 화면의 표와 차트가
+        같은 값을 가리킨다."""
         if not series_list:
-            return None
-        s = core.equal_weight_index(series_list).tail(core.INDEX_KEEP_DAYS)
+            return None, None
+        fresh = core.equal_weight_index(series_list)
+        values = core.accumulate({} if rebuild else stored, fresh, axis_dates)
+        kept = [(d, v) for d, v in zip(axis_dates, values) if v is not None]
+        if len(kept) < 2:
+            return None, None
+        s = pd.Series([v for _, v in kept], index=pd.to_datetime([d for d, _ in kept]))
         m = core.compute_metrics(s)
-        m["basis"] = "동일가중 지수 (구성종목 일간수익률 평균 누적, 최근 5년 구간)"
+        m["basis"] = "동일가중 지수 (구성종목 일간수익률 평균을 매일 이어 붙인 적립값)"
         m.pop("close", None)          # 지수 레벨은 표에 쓰지 않는다
         # 테마의 '사상 고점'은 구성종목이 계속 바뀌므로 의미가 없다 — 52주만 남긴다.
         for k in ("from_all_high", "high_all", "high_all_date"):
             m[k] = None
         m["count"] = count
-        return m
+        return m, values
 
-    index_metrics = make_index(closes, len(rows))
+    index_metrics, index_series = make_index(
+        closes, len(rows), stored_map(pdates, pser.get("index")))
 
     # 시총 필터를 켰을 때 쓸 지수. 지수는 시계열이 있어야 만들 수 있어 프론트에서 계산할 수 없다.
     large = [(r, c) for r, c in zip(rows, closes)
              if r.get("market_cap") and r["market_cap"] >= CAP_THRESHOLD]
-    index_large = make_index([c for _, c in large], len(large))
+    index_large, index_large_series = make_index(
+        [c for _, c in large], len(large), stored_map(pdates, pser.get("index_large")))
 
     now = datetime.now(KST)
     return {
@@ -147,6 +228,13 @@ def build_theme(theme: str, stocks: list) -> dict:
         "period_mode": core.PERIOD_MODE,
         "index": index_metrics,
         "index_large": index_large,          # 시총 필터를 켰을 때 쓰는 지수
+        # 적립된 일별 지수 시계열(시장 거래일 축). 날짜를 같이 넣어 두는 이유는, 어떤 테마가
+        # 퇴행방지로 갱신을 건너뛰어도 다음 실행에서 날짜로 다시 맞춰 이어 붙일 수 있어서다.
+        "series": {
+            "dates": axis_dates,
+            "index": index_series,
+            "index_large": index_large_series,
+        },
         "cap_threshold": CAP_THRESHOLD,
         "groups": groups,
         "errors": errors,
@@ -154,6 +242,9 @@ def build_theme(theme: str, stocks: list) -> dict:
 
 
 def main(argv: list) -> int:
+    rebuild = "--rebuild-series" in argv        # 적립분을 버리고 현재 구성으로 다시 까는 비상용 스위치
+    argv = [a for a in argv if not a.startswith("--")]
+
     universe = load_universe()
     stocks = [s for s in universe.get("stocks", []) if s.get("active", True)]
     if not stocks:
@@ -171,20 +262,41 @@ def main(argv: list) -> int:
     if unknown:
         raise SystemExit(f"유니버스에 없는 테마: {', '.join(unknown)}")
 
+    print("  [시장] 코스피·코스닥 수집…")
+    markets, market_closes = collect_markets()
+
+    store = load_store()
+    market_dates = [d.strftime("%Y-%m-%d") for d in market_closes[core.MARKETS[0][0]].index]
+    axis_dates = build_axis(store, market_dates, rebuild)
+    axis = pd.to_datetime(axis_dates)
+    added = [d for d in axis_dates if d not in set(store["dates"])]
+    print(f"    축 {len(axis_dates)}거래일"
+          + (f" (신규 {len(added)}일: {', '.join(added[-3:])})" if store["dates"] else " — 최초 적립")
+          + (" · --rebuild-series" if rebuild else ""))
+
+    # 시장 지수도 같은 원칙으로 적립한다(지수 종가는 확정값이라 값은 같지만, 저장분을 우선한다).
+    market_series = {}
+    for m in markets:
+        stored = {} if rebuild else stored_map(store["dates"], store["values"].get(m["id"]))
+        fresh = core.align(market_closes[m["id"]], axis)
+        market_series[m["id"]] = [stored.get(d, v) for d, v in zip(axis_dates, fresh)]
+
     THEMES_DIR.mkdir(parents=True, exist_ok=True)
     summaries, failed, stale = [], [], []
+    kept = {}                      # 테마 → 이번에 사이트가 쓸 payload(신규 또는 기존)
     for theme in wanted:
         print(f"  [{theme}] 수집… ({len(by_theme[theme])}종목)")
         out_path = THEMES_DIR / f"{theme}.json"
         prev = load_json(out_path)
 
         try:
-            payload = build_theme(theme, by_theme[theme])
+            payload = build_theme(theme, by_theme[theme], axis_dates, prev, rebuild)
         except Exception as e:  # noqa: BLE001
             failed.append(theme)
             print(f"  [FAIL] {theme}: {e}", file=sys.stderr)
             if prev:
                 summaries.append(summarize(prev))   # 기존 값으로 탭은 살려 둔다
+                kept[theme] = prev
             continue
 
         # 데이터 퇴행 방지 — 새로 받은 기준일이 이미 저장된 것보다 이전이면 덮어쓰지 않는다.
@@ -195,28 +307,55 @@ def main(argv: list) -> int:
             print(f"  [SKIP] {theme}: 받은 기준일 {payload['as_of']} < 저장된 {prev['as_of']} "
                   f"— 데이터 퇴행이라 기존 파일 유지", file=sys.stderr)
             summaries.append(summarize(prev))
+            kept[theme] = prev
             continue
 
         out_path.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         summaries.append(summarize(payload))
+        kept[theme] = payload
 
     if not summaries:
         print("모든 테마 실패 — 기존 JSON을 유지합니다.", file=sys.stderr)
         return 1
 
     now = datetime.now(KST)
+    market_as_of = max(m["as_of"] for m in markets)
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "index.json").write_text(json.dumps({
         "updated_at": now.strftime("%Y-%m-%d %H:%M"),
         "as_of": max(s["as_of"] for s in summaries),
         "period_mode": core.PERIOD_MODE,
         "universe_source": universe.get("source", "unknown"),
+        "markets": markets,          # 메인 화면의 비교 기준(코스피·코스닥)
         "themes": summaries,
         "failed_themes": failed,
         "stale_themes": stale,
     }, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # ── 일별 시계열 (메인 화면의 시장 비교 차트) ──────────────────────────
+    # 테마 순서는 index.json과 같다. 프론트의 계열 색은 이 순서로 고정되므로,
+    # 화면에서 몇 개를 껐다 켜도 남은 선의 색이 바뀌지 않는다.
+    series_path = DATA / "series.json"
+    prev_series = load_json(series_path)
+    if prev_series and market_as_of < prev_series.get("as_of", ""):
+        print(f"  [SKIP] 시장 지수 기준일 {market_as_of} < 저장된 {prev_series['as_of']} "
+              f"— 데이터 퇴행이라 series.json 유지", file=sys.stderr)
+    else:
+        theme_lines = []
+        for sm in summaries:
+            values = series_on_axis(kept.get(sm["id"]), axis_dates)
+            if values:
+                theme_lines.append({"id": sm["id"], "name": sm["name"], "values": values})
+        series_path.write_text(json.dumps({
+            "updated_at": now.strftime("%Y-%m-%d %H:%M"),
+            "as_of": market_as_of,
+            "dates": axis_dates,
+            "markets": [{"id": m["id"], "name": m["name"], "values": market_series[m["id"]]}
+                        for m in markets],
+            "themes": theme_lines,
+        }, ensure_ascii=False), encoding="utf-8")   # indent 없이 — 1,300일×계열이라 용량이 커진다
 
     print(f"  완료 — 테마 {len(summaries)}개"
           + (f", 실패 {len(failed)}개" if failed else "")

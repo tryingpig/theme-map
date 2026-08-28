@@ -27,7 +27,13 @@ PERIOD_MODE = "calendar"   # "calendar" = 원본 화면과 동일 / "trading" = 
 TRADING_1M = 21            # PERIOD_MODE="trading"일 때만 사용
 TRADING_1Y = 252
 HISTORY_PERIOD = "max"     # 사상 최고가를 잡으려면 전체 기간이 필요하다
-INDEX_KEEP_DAYS = 1300     # 테마 지수 산출 구간(약 5년) — 그 이전은 구성종목이 한둘뿐이라 지수가 아니다
+BACKFILL_DAYS = 300        # 테마 지수를 **처음 만들 때만** 소급 계산하는 구간(거래일).
+                           # 화면 최대 기간이 1년이라 여유를 조금 둔 길이다.
+                           # 그 뒤로는 재계산하지 않고 하루치씩 이어 붙인다(accumulate 참고).
+
+# 시장 지수 — 테마가 시장을 이기는지 보려면 같은 축 위에 있어야 한다.
+# 야후의 ^KS11/^KQ11은 코스피·코스닥 종가와 같다(2026-08-28 확인).
+MARKETS = [("KOSPI", "코스피", "^KS11"), ("KOSDAQ", "코스닥", "^KQ11")]
 
 
 def fetch_history(symbol: str, retries: int = 3) -> pd.DataFrame:
@@ -166,4 +172,61 @@ def average_metrics(rows: list) -> dict:
         vals = [r[k] for r in rows if r.get(k) is not None]
         out[k] = round(sum(vals) / len(vals), 2) if vals else None
     out["count"] = len(rows)
+    return out
+
+
+def align(series: pd.Series, axis: pd.DatetimeIndex) -> list:
+    """시계열을 공통 날짜축(시장 거래일)에 맞춘다.
+
+    축에 없는 날은 버리고, 축에는 있는데 그 종목/지수엔 없는 날은 직전 값으로 채운다
+    (거래정지·상장 전). 상장 전 구간은 채울 값이 없어 None으로 남고 차트에서 선이 끊긴다.
+    """
+    s = series.dropna()
+    s.index = pd.to_datetime([d.strftime("%Y-%m-%d") for d in s.index])
+    r = s.reindex(axis.union(s.index)).ffill().reindex(axis)
+    return [None if pd.isna(v) else round(float(v), 2) for v in r]
+
+
+def rebase(series: pd.Series) -> pd.Series:
+    """시작을 100으로 맞춘 지수. 시장 지수(코스피 6,841 vs 코스닥 836)를 한 차트에 올릴 때 쓴다."""
+    s = series.dropna()
+    return s / float(s.iloc[0]) * 100
+
+
+def accumulate(prev: dict, fresh: pd.Series, axis_dates: list) -> list:
+    """지수를 **적립**한다 — 이미 기록된 날의 값은 절대 다시 계산하지 않는다.
+
+    매 실행마다 전 구간을 다시 계산하면, 오늘 종목 하나를 빼는 순간 3개월 전 수익률까지
+    같이 바뀐다. 그러면 "그때 이 테마가 얼마였나"라는 기록이 남지 않는다.
+    그래서 이렇게 한다:
+
+      · 저장된 날짜  → 저장된 값 그대로 (구성이 바뀌어도 과거는 그대로 남는다)
+      · 새 거래일    → 마지막 지수 × (1 + 그날 구성종목 평균 등락률)
+      · 기록이 아예 없을 때(새 테마·최초 실행) → fresh로 그 구간을 한 번 소급해 깔고 100에서 시작
+
+    구성 변경은 이 구조에서 **변경한 날 이후에만** 영향을 준다. 지수 레벨이 이어지므로
+    편입·제외로 선이 튀지도 않는다.
+
+    prev: {날짜: 값} — 지금까지 적립된 값
+    fresh: 현재 구성종목으로 계산한 동일가중 지수(레벨은 아무 값이나 무방, 등락률만 쓴다)
+    """
+    ret = {d.strftime("%Y-%m-%d"): v for d, v in fresh.pct_change().items()}
+    lvl = {d.strftime("%Y-%m-%d"): float(v) for d, v in fresh.items()}
+
+    base = next((lvl[d] for d in axis_dates if d in lvl), None)
+    out, last = [], None
+    for d in axis_dates:
+        p = prev.get(d)
+        if p is not None:
+            last = float(p)
+        elif last is None:
+            # 아직 이어 붙일 앞 값이 없다 → 소급 구간. 구간 첫 거래일을 100으로 둔다.
+            last = (lvl[d] / base * 100) if (d in lvl and base) else None
+        else:
+            r = ret.get(d)
+            # 그날 시세가 없으면(전 종목 거래정지 등) 지수를 유지한다 — 0으로 떨어뜨리지 않는다.
+            last = last * (1 + float(r)) if r is not None and not pd.isna(r) else last
+        # 소수 넷째 자리까지 남긴다 — 저장값에서 다시 곱해 이어 가므로, 두 자리로 자르면
+        # 반올림 오차가 매일 조금씩 누적된다(5일 이어 붙였을 때 0.01 어긋나는 걸 확인했다).
+        out.append(None if last is None else round(last, 4))
     return out
