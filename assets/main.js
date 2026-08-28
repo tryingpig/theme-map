@@ -105,6 +105,18 @@ function toggleTheme(id) {
   draw();
 }
 
+/* 시장을 이기기 시작한 시점. 판정은 빌드(scripts/build.py rs_signal)에서 한 번만 하고
+   화면은 그 값을 보여 주기만 한다 — 알림과 화면이 다른 말을 하면 안 된다. */
+function rsCell(r) {
+  const rs = r.rs;
+  if (!rs) return '<td class="num sub">-</td>';
+  const up = rs.state === "above";
+  const when = rs.cross_date ? rs.cross_date.slice(5).replace("-", "/") : "구간 내내";
+  return `<td class="num rs ${up ? "up" : "dn"}">
+    <span class="rs-d">${up ? "우위" : "열위"} D+${rs.days}</span>
+    <span class="rs-sub">${when}부터 ${fmtPct(rs.excess_since)}%p</span></td>`;
+}
+
 function renderTable(rows) {
   const period = PERIODS.find((p) => p.id === state.period);
   const cols = [
@@ -118,7 +130,8 @@ function renderTable(rows) {
   const sc = {};
   cols.forEach((c) => { sc[c.key] = columnScale(rows.map((r) => r[c.key])); });
 
-  $("rankHead").innerHTML = `<th>이름</th>${cols.map((c) => `<th>${c.label}</th>`).join("")}<th>구성</th>`;
+  $("rankHead").innerHTML = `<th>이름</th>${cols.map((c) => `<th>${c.label}</th>`).join("")}`
+    + `<th title="상대강도(테마÷코스피)가 20일 이동평균을 넘은 날부터">우위 전환</th><th>구성</th>`;
   $("rankBody").innerHTML = rows.map((r) => `
     <tr class="${r.kind === "market" ? "mkt" : "theme"}"${r.kind === "theme" ? ` data-t="${r.id}"` : ""}>
       <td class="name"><i class="dot" style="background:${r.color}"></i>${r.name}
@@ -126,6 +139,7 @@ function renderTable(rows) {
       ${cols.map((c) => (c.key === "excess" && r.kind === "market" && r.id === "KOSPI"
         ? '<td class="num muted">기준</td>'
         : `<td class="num heat ${heatClass(r[c.key], sc[c.key])}">${fmtPct(r[c.key])}</td>`)).join("")}
+      ${r.kind === "market" ? '<td class="num sub">-</td>' : rsCell(r)}
       <td class="num sub">${r.count ? `${r.count}종목` : "-"}</td>
     </tr>`).join("");
 
@@ -155,7 +169,7 @@ function buildRows(from) {
       ret,
       excess: (ret === null || kospiRet === null) ? null
         : ((100 + ret) / (100 + kospiRet) - 1) * 100,
-      r1d: m.r1d, r5d: m.r5d, r1m: m.r1m, r1y: m.r1y, count: m.count,
+      r1d: m.r1d, r5d: m.r5d, r1m: m.r1m, r1y: m.r1y, count: m.count, rs: m.rs,
     };
   });
   rows.sort((a, b) => (b.ret ?? -Infinity) - (a.ret ?? -Infinity));
@@ -168,17 +182,24 @@ function draw() {
 
   renderControls();
   renderLegend();
+  // 전환 마커 — 지금 코스피를 이기고 있는 테마가 "언제부터" 이겼는지를 선 위의 점으로 찍는다.
+  const marks = (state.index.themes || [])
+    .filter((t) => state.visible.includes(t.id) && t.rs
+                   && t.rs.state === "above" && t.rs.cross_date)
+    .map((t) => ({ id: t.id, date: t.rs.cross_date }));
+
   Chart.render($("chart"), {
     dates, from, mode: state.mode, baseId: "KOSPI",
     height: innerWidth < 640 ? 300 : 380,
-    series: visibleSeries(),
+    series: visibleSeries(), marks,
   });
 
   const rows = buildRows(from);
   renderTable(rows);
-  $("chartNote").textContent = state.mode === "rel"
+  $("chartNote").textContent = (state.mode === "rel"
     ? `${dates[from]} 이후 코스피 대비 초과수익 · 0%선이 코스피`
-    : `${dates[from]} 종가 = 0% 기준`;
+    : `${dates[from]} 종가 = 0% 기준`)
+    + (marks.length ? " · ◉ 는 코스피를 이기기 시작한 날" : "");
 }
 
 function initThemeToggle() {

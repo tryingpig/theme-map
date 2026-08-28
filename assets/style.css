@@ -355,3 +355,15 @@ h1 .home::before { content: "← "; color: var(--muted); font-weight: 400; }
 
 /* 시장(코스피·코스닥) 행은 히트맵 색을 입히지 않는다 — 경쟁자가 아니라 기준선이라서,
    테마들끼리의 강약이 무채색 기준행을 사이에 두고 읽히게 둔다. */
+
+/* 상대강도 20일선과 전환 마커 */
+.line.ma { stroke-width: 1.25; stroke-dasharray: 3 3; opacity: 0.7; }
+.mark circle { fill: var(--card); stroke-width: 2; }
+.mark .dot { stroke: none; }
+
+/* '우위 전환' 칸 — 숫자 하나가 아니라 "언제부터 · 그 뒤로 얼마"를 두 줄로 */
+#rank td.rs { text-align: right; padding: 7px 12px; line-height: 1.35; }
+#rank td.rs .rs-d { display: block; font-weight: 700; font-size: 13px; }
+#rank td.rs .rs-sub { display: block; color: var(--muted); font-size: 11.5px; }
+#rank td.rs.up .rs-d { color: var(--up-4); }
+#rank td.rs.dn .rs-d { color: var(--dn-4); }

@@ -55,14 +55,39 @@ const Chart = (() => {
       (v === null || v === undefined ? null : (v / base) * 100 - 100));
   }
 
-  /* 코스피 대비 초과수익. 비율의 비율이라 단순 뺄셈(%p)이 아니다 —
-     구간이 길수록 복리 차이가 커서 뺄셈으로 하면 5년 구간에서 눈에 띄게 틀린다. */
-  function relative(pct, basePct) {
-    return pct.map((v, i) => {
-      const b = basePct[i];
-      if (v === null || b === null) return null;
-      return ((100 + v) / (100 + b) - 1) * 100;
+  /* 상대강도 = 테마 ÷ 코스피. %끼리 나누지 않고 **값에서** 만든다
+     (비율의 비율이라 %를 빼는 방식은 구간이 길수록 어긋난다). */
+  function ratio(a, b) {
+    return a.map((v, i) => {
+      const d = b[i];
+      return (v === null || v === undefined || !d) ? null : v / d;
     });
+  }
+
+  const firstValue = (values, from) => {
+    for (let i = from; i < values.length; i++) {
+      if (values[i] !== null && values[i] !== undefined) return values[i];
+    }
+    return null;
+  };
+
+  /* 기준값을 밖에서 주는 변화율 — 이동평균선이 원래 선과 같은 눈금 위에 놓이게 하려면
+     둘이 **같은 기준값**을 써야 한다. */
+  const toPct = (values, from, base) => values.slice(from).map((v) =>
+    (v === null || v === undefined ? null : (v / base) * 100 - 100));
+
+  /* 단순이동평균. 구간이 다 차기 전(앞의 window-1개)은 null이라 선이 그때부터 시작한다. */
+  function movingAvg(values, window) {
+    const out = [];
+    let sum = 0, n = 0;
+    for (let i = 0; i < values.length; i++) {
+      const v = values[i];
+      if (v !== null && v !== undefined) { sum += v; n += 1; }
+      const drop = values[i - window];
+      if (drop !== null && drop !== undefined && i >= window) { sum -= drop; n -= 1; }
+      out.push(i >= window - 1 && n === window ? sum / window : null);
+    }
+    return out;
   }
 
   function niceTicks(min, max, count = 5) {
@@ -113,20 +138,24 @@ const Chart = (() => {
     const n = view.length;
     if (n < 2) { host.innerHTML = '<p class="chart-empty">표시할 구간이 없습니다.</p>'; return; }
 
-    let lines = cfg.series
-      .map((s) => ({ ...s, pct: pctFrom(s.values, from) }))
-      .filter((s) => s.pct);
-
-    const base = lines.find((s) => s.id === baseId);
-    if (mode === "rel") {
-      if (!base) { host.innerHTML = '<p class="chart-empty">기준 지수를 불러오지 못했습니다.</p>'; return; }
-      const basePct = base.pct;
-      lines = lines
-        .map((s) => ({ ...s, pct: relative(s.pct, basePct) }))
-        .filter((s) => s.id !== baseId);     // 기준(코스피)은 0% 가로선으로 대신 그린다
+    const base = cfg.series.find((s) => s.id === baseId);
+    if (mode === "rel" && !base) {
+      host.innerHTML = '<p class="chart-empty">기준 지수를 불러오지 못했습니다.</p>'; return;
     }
 
-    const vals = lines.flatMap((s) => s.pct).filter((v) => v !== null);
+    let lines = cfg.series.map((s) => {
+      const vals = mode === "rel" ? ratio(s.values, base.values) : s.values;
+      const b = firstValue(vals, from);
+      return {
+        ...s, pct: b ? toPct(vals, from, b) : null,
+        // 이동평균은 원래 선과 같은 기준값으로 환산해야 같은 눈금에 얹힌다.
+        mapct: (b && s.ma) ? toPct(movingAvg(vals, s.ma), from, b) : null,
+      };
+    }).filter((s) => s.pct);
+
+    if (mode === "rel") lines = lines.filter((s) => s.id !== baseId);  // 기준선은 0% 가로선으로
+
+    const vals = lines.flatMap((s) => [...s.pct, ...(s.mapct || [])]).filter((v) => v !== null);
     if (!vals.length) { host.innerHTML = '<p class="chart-empty">표시할 계열이 없습니다.</p>'; return; }
     let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
     const pad = (hi - lo) * 0.08 || 1;
@@ -151,9 +180,24 @@ const Chart = (() => {
       <text class="endlabel base" x="${width - PAD.right + 7}"
             y="${(y(0) + 4).toFixed(1)}">${esc(base.name)}</text>` : "";
 
+    const maPaths = lines.filter((s) => s.mapct).map((s) => `
+      <path class="line ma" style="stroke:${s.color}" d="${pathOf(s.mapct, x, y)}"/>`).join("");
+
     const paths = lines.map((s) => `
       <path class="line${s.kind === "market" ? " mkt" : ""}" style="stroke:${s.color}"
             ${s.dash ? `stroke-dasharray="${s.dash}"` : ""} d="${pathOf(s.pct, x, y)}"/>`).join("");
+
+    /* 전환 마커 — "여기서부터 시장을 이기기 시작했다"는 한 점.
+       선 위에 겹치므로 배경색 링을 둘러 어느 선의 점인지 구분되게 한다. */
+    const marks = (cfg.marks || []).map((mk) => {
+      const s = lines.find((l) => l.id === mk.id);
+      if (!s) return "";
+      const i = view.indexOf(mk.date);
+      if (i < 0 || s.pct[i] === null) return "";
+      const cx = x(i).toFixed(1), cy = y(s.pct[i]).toFixed(1);
+      return `<g class="mark"><circle cx="${cx}" cy="${cy}" r="6" style="stroke:${s.color}"/>
+              <circle class="dot" cx="${cx}" cy="${cy}" r="2.5" style="fill:${s.color}"/></g>`;
+    }).join("");
 
     /* 선 끝 이름표 — 라이트 모드에는 대비가 낮은 색(노랑·아쿠아·마젠타)이 섞여 있어
        색만으로 계열을 구분하게 두지 않는다. 이름표와 아래 표가 그 역할을 한다. */
@@ -170,7 +214,7 @@ const Chart = (() => {
     host.innerHTML = `
       <svg class="chart" width="${width}" height="${height}" role="img"
            aria-label="기간 시작 대비 수익률 비교 차트">
-        ${grid}${xt}${baseline}${paths}${endLabels}
+        ${grid}${xt}${baseline}${maPaths}${paths}${marks}${endLabels}
         <g class="cross" hidden>
           <line class="crossline" y1="${PAD.top}" y2="${height - PAD.bottom}"/>
           <g class="dots"></g>
@@ -229,5 +273,5 @@ const Chart = (() => {
     svg.addEventListener("pointerleave", () => { cross.hidden = true; tip.hidden = true; });
   }
 
-  return { render, pctFrom, relative, fmtPct, PERIODS, fromIndex };
+  return { render, pctFrom, fmtPct, PERIODS, fromIndex };
 })();

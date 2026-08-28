@@ -131,6 +131,48 @@ def stored_map(dates: list, values: list) -> dict:
     return {d: v for d, v in zip(dates or [], values or []) if v is not None}
 
 
+RS_WINDOW = 20      # 상대강도 이동평균 구간(거래일) — 약 1개월
+
+
+def rs_signal(values: list, base_values: list, axis_dates: list, window: int = RS_WINDOW):
+    """**시장을 이기기 시작한 시점**을 찾는다.
+
+    상대강도 RS = 테마지수 ÷ 코스피. 이 선이 자기 20일 이동평균을 위로 넘은 날이 전환일이다.
+    지수 레벨이 아니라 비율이라 기간을 어떻게 잘라 봐도 전환일은 그대로다.
+
+    판정은 **돌파 즉시**다(사용자 선택). 확인 기간을 두지 않으므로 하루 스쳤다 되돌아가는
+    신호도 잡힌다 — 대신 반응이 가장 빠르다.
+
+    돌려주는 것: 지금 우위인가(state), 그 상태가 시작된 날(cross_date),
+    그날부터 며칠째인가(days), 그동안 코스피를 얼마나 앞섰나(excess_since).
+    """
+    rs = (pd.Series(values, index=axis_dates, dtype="float64")
+          / pd.Series(base_values, index=axis_dates, dtype="float64")).dropna()
+    if len(rs) < window + 2:
+        return None
+
+    ma = rs.rolling(window).mean()
+    above = (rs - ma).dropna() > 0
+    if above.empty:
+        return None
+
+    # 지금 상태가 시작된 지점 — 뒤에서부터 부호가 바뀐 첫 자리
+    start = 0
+    for i in range(len(above) - 1, 0, -1):
+        if bool(above.iloc[i]) != bool(above.iloc[i - 1]):
+            start = i
+            break
+
+    at = above.index[start]
+    return {
+        "state": "above" if bool(above.iloc[-1]) else "below",
+        "window": window,
+        "cross_date": at if start else None,     # start=0이면 구간 내내 같은 상태였다는 뜻
+        "days": len(above) - 1 - start,
+        "excess_since": round((float(rs.iloc[-1]) / float(rs.loc[at]) - 1) * 100, 2),
+    }
+
+
 def series_on_axis(payload: dict, axis_dates: list, key: str = "index"):
     """테마 JSON에 저장된 시계열을 현재 축에 다시 맞춘다.
 
@@ -319,6 +361,18 @@ def main(argv: list) -> int:
     if not summaries:
         print("모든 테마 실패 — 기존 JSON을 유지합니다.", file=sys.stderr)
         return 1
+
+    # 시장을 이기기 시작한 시점 — 화면의 '우위 전환' 칸과 텔레그램 알림이 같은 값을 쓰도록
+    # 여기서 한 번만 판정한다.
+    base_values = market_series[core.MARKETS[0][0]]
+    for sm in summaries:
+        vals = series_on_axis(kept.get(sm["id"]), axis_dates)
+        sm["rs"] = rs_signal(vals, base_values, axis_dates) if vals else None
+        if sm["rs"]:
+            r = sm["rs"]
+            mark = "우위" if r["state"] == "above" else "열위"
+            print(f"    [RS] {sm['name']:8s} {mark} D+{r['days']:<4d}"
+                  f" (전환 {r['cross_date'] or '구간 이전'}) 이후 {r['excess_since']:+.2f}%p")
 
     now = datetime.now(KST)
     market_as_of = max(m["as_of"] for m in markets)

@@ -304,9 +304,12 @@ function renderChart() {
   // 시총 필터를 켜면 차트도 그 기준의 지수로 바꾼다 — 표와 다른 얘기를 하면 안 된다.
   const values = (state.capOnly && ser.index_large) ? ser.index_large : ser.index;
   const dates = mkt.dates;
+  // 코스피 대비 모드에서만 20일 이동평균을 같이 그린다 — 전환 판정의 근거가 되는 선이다.
+  const rs = ((state.index.themes || []).find((t) => t.id === state.theme) || {}).rs;
   const line = {
     id: state.theme, name: state.data.theme.name, kind: "theme",
     color: themeColor(), values: onMarketAxis(ser, values, dates),
+    ma: chartState.mode === "rel" && rs ? rs.window : 0,
   };
   const markets = mkt.markets.map((m) => ({
     id: m.id, name: m.name, values: m.values, ...MARKET_STYLE[m.id],
@@ -319,14 +322,20 @@ function renderChart() {
     dates, from, mode: chartState.mode, baseId: "KOSPI",
     height: innerWidth < 640 ? 260 : 320,
     series: [...markets, line],
+    marks: rs && rs.state === "above" && rs.cross_date
+      ? [{ id: state.theme, date: rs.cross_date }] : [],
   });
 
   $("legend2").innerHTML = [line, ...markets].map((s) =>
     `<span class="chip on fixed"><i style="background:${s.color}${s.dash ? ";opacity:.75" : ""}"></i>${s.name}</span>`
   ).join("");
-  $("chartNote").textContent = chartState.mode === "rel"
+  const rsNote = rs
+    ? ` · 코스피 대비 ${rs.state === "above" ? "우위" : "열위"} ${rs.days}거래일째`
+      + (rs.cross_date ? ` (${rs.cross_date} 전환, 이후 ${Chart.fmtPct(rs.excess_since, 2).replace("%", "%p")})` : "")
+    : "";
+  $("chartNote").textContent = (chartState.mode === "rel"
     ? `${dates[from]} 이후 코스피 대비 초과수익 · 0%선이 코스피`
-    : `${dates[from]} 종가 = 0% 기준`;
+    : `${dates[from]} 종가 = 0% 기준`) + rsNote;
 }
 
 /* ── 로딩 ──────────────────────────────────────────────── */
