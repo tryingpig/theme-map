@@ -138,13 +138,15 @@ const Chart = (() => {
     const n = view.length;
     if (n < 2) { host.innerHTML = '<p class="chart-empty">표시할 구간이 없습니다.</p>'; return; }
 
-    const base = cfg.series.find((s) => s.id === baseId);
-    if (mode === "rel" && !base) {
+    // 기준(코스피) 값은 화면에 켜져 있든 꺼져 있든 필요하다 — 상대강도를 만드는 분모다.
+    const baseValues = cfg.baseValues
+      || (cfg.series.find((s) => s.id === baseId) || {}).values;
+    if (mode === "rel" && !baseValues) {
       host.innerHTML = '<p class="chart-empty">기준 지수를 불러오지 못했습니다.</p>'; return;
     }
 
-    let lines = cfg.series.map((s) => {
-      const vals = mode === "rel" ? ratio(s.values, base.values) : s.values;
+    const lines = cfg.series.map((s) => {
+      const vals = mode === "rel" ? ratio(s.values, baseValues) : s.values;
       const b = firstValue(vals, from);
       return {
         ...s, pct: b ? toPct(vals, from, b) : null,
@@ -152,8 +154,6 @@ const Chart = (() => {
         mapct: (b && s.ma) ? toPct(movingAvg(vals, s.ma), from, b) : null,
       };
     }).filter((s) => s.pct);
-
-    if (mode === "rel") lines = lines.filter((s) => s.id !== baseId);  // 기준선은 0% 가로선으로
 
     const vals = lines.flatMap((s) => [...s.pct, ...(s.mapct || [])]).filter((v) => v !== null);
     if (!vals.length) { host.innerHTML = '<p class="chart-empty">표시할 계열이 없습니다.</p>'; return; }
@@ -173,12 +173,6 @@ const Chart = (() => {
 
     const xt = xTicks(view, width < 520 ? 4 : 6).map((t) => `
       <text class="xtick" x="${x(t.i).toFixed(1)}" y="${height - 8}">${t.text}</text>`).join("");
-
-    const baseline = mode === "rel" ? `
-      <line class="baseline" x1="${PAD.left}" x2="${width - PAD.right}"
-            y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>
-      <text class="endlabel base" x="${width - PAD.right + 7}"
-            y="${(y(0) + 4).toFixed(1)}">${esc(base.name)}</text>` : "";
 
     const maPaths = lines.filter((s) => s.mapct).map((s) => `
       <path class="line ma" style="stroke:${s.color}" d="${pathOf(s.mapct, x, y)}"/>`).join("");
@@ -214,7 +208,7 @@ const Chart = (() => {
     host.innerHTML = `
       <svg class="chart" width="${width}" height="${height}" role="img"
            aria-label="기간 시작 대비 수익률 비교 차트">
-        ${grid}${xt}${baseline}${maPaths}${paths}${marks}${endLabels}
+        ${grid}${xt}${maPaths}${paths}${marks}${endLabels}
         <g class="cross" hidden>
           <line class="crossline" y1="${PAD.top}" y2="${height - PAD.bottom}"/>
           <g class="dots"></g>

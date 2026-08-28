@@ -246,7 +246,7 @@ function attachTip(tr, st) {
 /* ── 시장 대비 차트 ─────────────────────────────────────
    상세 화면에서도 "이 테마가 코스피를 이겼나"를 바로 볼 수 있어야 한다.
    테마 지수 시계열은 그 테마 JSON에, 코스피·코스닥은 data/series.json에 있다. */
-const chartState = { period: "1y", mode: "abs", market: null };
+const chartState = { period: "1y", mode: "abs", market: null, markets: null };
 const MARKET_STYLE = {
   KOSPI: { color: "var(--mkt-1)", dash: "", kind: "market" },
   KOSDAQ: { color: "var(--mkt-2)", dash: "5 4", kind: "market" },
@@ -314,6 +314,10 @@ function renderChart() {
   const markets = mkt.markets.map((m) => ({
     id: m.id, name: m.name, values: m.values, ...MARKET_STYLE[m.id],
   }));
+  if (!chartState.markets) chartState.markets = markets.map((m) => m.id);
+  const shown = markets.filter((m) => chartState.markets.includes(m.id));
+  // 코스피 값은 꺼져 있어도 넘긴다 — 코스피 대비 계산의 분모다.
+  const kospi = markets.find((m) => m.id === "KOSPI");
 
   const from = Chart.fromIndex(dates, Chart.PERIODS.find((p) => p.id === chartState.period));
 
@@ -321,14 +325,30 @@ function renderChart() {
   Chart.render($("chart"), {
     dates, from, mode: chartState.mode, baseId: "KOSPI",
     height: innerWidth < 640 ? 260 : 320,
-    series: [...markets, line],
+    series: [...shown, line], baseValues: kospi && kospi.values,
     marks: rs && rs.state === "above" && rs.cross_date
       ? [{ id: state.theme, date: rs.cross_date }] : [],
   });
 
-  $("legend2").innerHTML = [line, ...markets].map((s) =>
-    `<span class="chip on fixed"><i style="background:${s.color}${s.dash ? ";opacity:.75" : ""}"></i>${s.name}</span>`
-  ).join("");
+  // 테마는 이 화면의 주인공이라 고정, 코스피·코스닥은 껐다 켤 수 있게 한다.
+  $("legend2").innerHTML =
+    `<span class="chip on fixed"><i style="background:${line.color}"></i>${line.name}</span>`
+    + markets.map((m) => {
+      const on = chartState.markets.includes(m.id);
+      return `<button type="button" class="chip${on ? " on" : ""}" data-m="${m.id}">
+        <i style="background:${m.color};opacity:.75"></i>${m.name}</button>`;
+    }).join("");
+  $("legend2").querySelectorAll("button[data-m]").forEach((b) => {
+    b.onclick = () => {
+      const id = b.dataset.m;
+      chartState.markets = chartState.markets.includes(id)
+        ? chartState.markets.filter((m) => m !== id)
+        : [...chartState.markets, id];
+      try { localStorage.setItem("theme-map:markets", JSON.stringify(chartState.markets)); }
+      catch (e) { /* noop */ }
+      renderChart();
+    };
+  });
   const rsNote = rs
     ? ` · 코스피 대비 ${rs.state === "above" ? "우위" : "열위"} ${rs.days}거래일째`
       + (rs.cross_date ? ` (${rs.cross_date} 전환, 이후 ${Chart.fmtPct(rs.excess_since, 2).replace("%", "%p")})` : "")
@@ -407,6 +427,10 @@ async function init() {
     chartState.mode = localStorage.getItem("theme-map:main:mode") || chartState.mode;
   } catch (e) { /* noop */ }
   if (!Chart.PERIODS.some((p) => p.id === chartState.period)) chartState.period = "1y";
+  try {
+    const m = JSON.parse(localStorage.getItem("theme-map:markets") || "null");
+    if (Array.isArray(m)) chartState.markets = m;      // 메인 화면에서 끈 것을 여기서도 따른다
+  } catch (e) { /* noop */ }
   let rt = null;
   addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderChart, 160); });
   state.index = await fetch("data/index.json").then((r) => r.json());

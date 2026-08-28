@@ -14,7 +14,7 @@ const MARKET_STYLE = {
 const PERIODS = Chart.PERIODS;
 
 const $ = (id) => document.getElementById(id);
-const state = { index: null, series: null, period: "1y", mode: "abs", visible: null };
+const state = { index: null, series: null, period: "1y", mode: "abs", visible: null, markets: null };
 
 const fmtPct = (v, d = 2) => (v === null || v === undefined ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(d)}`);
 const store = {
@@ -53,7 +53,14 @@ function allSeries() {
 
 function visibleSeries() {
   const { markets, themes } = allSeries();
-  return [...markets, ...themes.filter((t) => state.visible.includes(t.id))];
+  return [...markets.filter((m) => state.markets.includes(m.id)),
+          ...themes.filter((t) => state.visible.includes(t.id))];
+}
+
+/* 코스피 값은 화면에서 껐어도 필요하다 — 코스피 대비 계산의 분모이자 표의 비교 기준이다. */
+function baseValues() {
+  const m = allSeries().markets.find((x) => x.id === "KOSPI");
+  return m && m.values;
 }
 
 /* ── 렌더 ──────────────────────────────────────────────── */
@@ -75,17 +82,20 @@ function renderControls() {
 
 function renderLegend() {
   const { markets, themes } = allSeries();
-  const chip = (s, on, clickable) =>
+  const chip = (s, on, clickable, kind) =>
     `<button type="button" class="chip${on ? " on" : ""}${clickable ? "" : " fixed"}"
-             ${clickable ? `data-t="${s.id}"` : "disabled"}>
+             ${clickable ? `data-${kind}="${s.id}"` : "disabled"}>
        <i style="background:${s.color}${s.dash ? ";opacity:.75" : ""}"></i>${s.name}</button>`;
 
   $("legend").innerHTML =
-    markets.map((m) => chip(m, true, false)).join("") +
-    themes.map((t) => chip(t, state.visible.includes(t.id), true)).join("");
+    markets.map((m) => chip(m, state.markets.includes(m.id), true, "m")).join("") +
+    themes.map((t) => chip(t, state.visible.includes(t.id), true, "t")).join("");
 
   $("legend").querySelectorAll("button[data-t]").forEach((b) => {
     b.onclick = () => toggleTheme(b.dataset.t);
+  });
+  $("legend").querySelectorAll("button[data-m]").forEach((b) => {
+    b.onclick = () => toggleMarket(b.dataset.m);
   });
 }
 
@@ -115,6 +125,16 @@ function rsCell(r) {
   return `<td class="num rs ${up ? "up" : "dn"}">
     <span class="rs-d">${up ? "우위" : "열위"} D+${rs.days}</span>
     <span class="rs-sub">${when}부터 ${fmtPct(rs.excess_since)}%p</span></td>`;
+}
+
+/* 코스피·코스닥도 테마처럼 껐다 켠다. 코스피를 꺼도 '코스피 대비' 값은 그대로다 —
+   비교 기준이 사라지는 게 아니라 선만 감추는 것이다. */
+function toggleMarket(id) {
+  state.markets = state.markets.includes(id)
+    ? state.markets.filter((m) => m !== id)
+    : [...state.markets, id];
+  store.set("theme-map:markets", JSON.stringify(state.markets));
+  draw();
 }
 
 function renderTable(rows) {
@@ -160,7 +180,7 @@ function buildRows(from) {
   const kospiPct = kospi ? Chart.pctFrom(kospi.values, from) : null;
   const kospiRet = kospiPct ? kospiPct[kospiPct.length - 1] : null;
 
-  const rows = [...markets, ...themes.filter((t) => state.visible.includes(t.id))].map((s) => {
+  const rows = visibleSeries().map((s) => {
     const pct = Chart.pctFrom(s.values, from);
     const ret = pct ? pct[pct.length - 1] : null;
     const m = meta[s.id] || {};
@@ -191,7 +211,7 @@ function draw() {
   Chart.render($("chart"), {
     dates, from, mode: state.mode, baseId: "KOSPI",
     height: innerWidth < 640 ? 300 : 380,
-    series: visibleSeries(), marks,
+    series: visibleSeries(), baseValues: baseValues(), marks,
   });
 
   const rows = buildRows(from);
@@ -233,6 +253,11 @@ async function init() {
   try { saved = JSON.parse(store.get("theme-map:main:visible", "null")); } catch (e) { /* noop */ }
   state.visible = Array.isArray(saved) ? saved.filter((v) => ids.includes(v)) : ids.slice(0, 6);
   if (!state.visible.length) state.visible = ids.slice(0, 6);
+
+  const mids = series.markets.map((m) => m.id);
+  let savedM = null;
+  try { savedM = JSON.parse(store.get("theme-map:markets", "null")); } catch (e) { /* noop */ }
+  state.markets = Array.isArray(savedM) ? savedM.filter((m) => mids.includes(m)) : mids;
 
   $("asOf").textContent = series.as_of;
   $("updatedAt").textContent = index.updated_at;
