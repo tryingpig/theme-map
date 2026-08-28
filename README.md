@@ -43,7 +43,7 @@
 - 판정은 `scripts/build.py`의 `rs_signal()`에서 **한 번만** 하고 `data/index.json`의 테마마다 `rs`로 실린다.
   화면(순위표 '우위 전환' 칸·차트의 ◉ 마커)과 텔레그램 알림이 같은 값을 본다.
 - 상세 화면에서 `코스피 대비`로 바꾸면 RS의 20일선이 점선으로 같이 그려진다.
-- 알림은 별도 에이전트 `C:\ClaudeCode	heme-map-alert`가 배포된 `index.json`을 읽어 보낸다
+- 알림은 별도 에이전트 `C:/ClaudeCode/theme-map-alert`가 배포된 `index.json`을 읽어 보낸다
   (공개 레포라 토큰을 넣지 않는다 — EpicAI-Monitor의 봇을 빌린다).
 
 ### 지수는 적립한다 (재계산하지 않는다)
