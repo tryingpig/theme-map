@@ -375,3 +375,6 @@ h1 .home::before { content: "← "; color: var(--muted); font-weight: 400; }
 .card.explain p:last-child { margin-bottom: 0; }
 .card.explain b { color: var(--ink); font-weight: 600; }
 .card.explain em { font-style: normal; color: var(--ink); }
+.card.explain ul { margin: 0; padding-left: 18px; }
+.card.explain li { font-size: 13px; line-height: 1.7; color: var(--ink-2); margin-bottom: 3px; }
+.card.explain .fine { margin: 9px 0 0; font-size: 11.5px; color: var(--muted); }
