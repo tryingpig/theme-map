@@ -2,8 +2,13 @@ name: Update theme map data
 
 on:
   schedule:
-    # 평일 18:30 KST (09:30 UTC) — 종가 확정 후 하루 한 번
-    - cron: '30 9 * * 1-5'
+    # 평일 19:12 KST (10:12 UTC) — 종가 확정 후 하루 한 번.
+    # 원래 '30 9' 였는데, GitHub 이 정각·30분처럼 붐비는 슬롯의 schedule 을
+    # 부하에 따라 크게 지연시키다 끝내 버린다. 실제로 8/27·8/28 은 10~11시간
+    # 밀렸고 그 뒤로는 실행 자체가 없었다(같은 cron 을 쓰던 rs-tracker·
+    # datalab-monitor 도 초 단위까지 동일하게 누락). 임의의 분으로 옮기고
+    # 다른 트래커(09:47/09:58)와도 겹치지 않게 분산한다.
+    - cron: '12 10 * * 1-5'
   workflow_dispatch:
 
 permissions:
