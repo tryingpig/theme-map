@@ -297,9 +297,9 @@ def main(argv: list) -> int:
         for t in st.get("themes", []):
             by_theme.setdefault(t, []).append(st)
 
-    wanted = argv or sorted(
-        by_theme, key=lambda t: min((s.get("order") or 9999) for s in by_theme[t])
-    )
+    # 테마 순서는 이름 가나다순이다(한글 음절은 유니코드 순서가 곧 가나다순).
+    # 종목의 정렬순서로 정하면 테마를 추가할 때마다 탭 순서가 흔들린다.
+    wanted = argv or sorted(by_theme)
     unknown = [t for t in wanted if t not in by_theme]
     if unknown:
         raise SystemExit(f"유니버스에 없는 테마: {', '.join(unknown)}")
@@ -376,6 +376,14 @@ def main(argv: list) -> int:
 
     now = datetime.now(KST)
     market_as_of = max(m["as_of"] for m in markets)
+
+    # 표에 실리는 시장 지표(현재가·%1일 등)도 퇴행시키지 않는다 — 야후가 지수의 최신 봉을
+    # 빼먹는 일이 있어서, 그대로 쓰면 코스피만 하루 뒤로 간 표가 나온다.
+    prev_index = load_json(DATA / "index.json") or {}
+    prev_markets = {m["id"]: m for m in (prev_index.get("markets") or [])}
+    markets = [prev_markets[m["id"]]
+               if prev_markets.get(m["id"], {}).get("as_of", "") > m["as_of"] else m
+               for m in markets]
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "index.json").write_text(json.dumps({
         "updated_at": now.strftime("%Y-%m-%d %H:%M"),
@@ -392,24 +400,27 @@ def main(argv: list) -> int:
     # 테마 순서는 index.json과 같다. 프론트의 계열 색은 이 순서로 고정되므로,
     # 화면에서 몇 개를 껐다 켜도 남은 선의 색이 바뀌지 않는다.
     series_path = DATA / "series.json"
-    prev_series = load_json(series_path)
-    if prev_series and market_as_of < prev_series.get("as_of", ""):
-        print(f"  [SKIP] 시장 지수 기준일 {market_as_of} < 저장된 {prev_series['as_of']} "
-              f"— 데이터 퇴행이라 series.json 유지", file=sys.stderr)
-    else:
-        theme_lines = []
-        for sm in summaries:
-            values = series_on_axis(kept.get(sm["id"]), axis_dates)
-            if values:
-                theme_lines.append({"id": sm["id"], "name": sm["name"], "values": values})
-        series_path.write_text(json.dumps({
-            "updated_at": now.strftime("%Y-%m-%d %H:%M"),
-            "as_of": market_as_of,
-            "dates": axis_dates,
-            "markets": [{"id": m["id"], "name": m["name"], "values": market_series[m["id"]]}
-                        for m in markets],
-            "themes": theme_lines,
-        }, ensure_ascii=False), encoding="utf-8")   # indent 없이 — 1,300일×계열이라 용량이 커진다
+    prev_series = load_json(series_path) or {}
+    # 시장 기준일이 뒤로 가도 파일을 통째로 건너뛰지 않는다.
+    # 적립 구조라 축은 append-only고 시장 값도 저장분이 우선이라, 이미 쌓인 날이 지워질 일이 없다.
+    # 통째로 건너뛰면 그날 새로 추가한 테마가 차트에 안 들어간다(2026-08-31에 실제로 그랬다 —
+    # 야후가 지수의 8/28 봉을 빼먹어서 새 테마 5개가 통째로 빠졌다).
+    if market_as_of < prev_series.get("as_of", ""):
+        print(f"  [WARN] 시장 지수 기준일 {market_as_of} < 저장된 {prev_series['as_of']} "
+              f"— 시장 값은 저장분을 쓰고 기준일도 유지한다", file=sys.stderr)
+    theme_lines = []
+    for sm in summaries:
+        values = series_on_axis(kept.get(sm["id"]), axis_dates)
+        if values:
+            theme_lines.append({"id": sm["id"], "name": sm["name"], "values": values})
+    series_path.write_text(json.dumps({
+        "updated_at": now.strftime("%Y-%m-%d %H:%M"),
+        "as_of": max(market_as_of, prev_series.get("as_of", "")),
+        "dates": axis_dates,
+        "markets": [{"id": m["id"], "name": m["name"], "values": market_series[m["id"]]}
+                    for m in markets],
+        "themes": theme_lines,
+    }, ensure_ascii=False), encoding="utf-8")   # indent 없이 — 1,300일×계열이라 용량이 커진다
 
     print(f"  완료 — 테마 {len(summaries)}개"
           + (f", 실패 {len(failed)}개" if failed else "")

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-29 05:58",
+  "updated_at": "2026-08-31 10:18",
   "as_of": "2026-08-28",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -45,25 +45,6 @@
   ],
   "themes": [
     {
-      "id": "원자력",
-      "name": "원자력",
-      "count": 16,
-      "as_of": "2026-08-28",
-      "r1d": 0.3,
-      "r5d": 17.11,
-      "r1m": 28.93,
-      "r1y": 47.39,
-      "from_52w_high": -37.07,
-      "from_all_high": null,
-      "rs": {
-        "state": "above",
-        "window": 20,
-        "cross_date": "2026-08-25",
-        "days": 3,
-        "excess_since": 6.87
-      }
-    },
-    {
       "id": "데이터센터",
       "name": "데이터센터",
       "count": 7,
@@ -100,12 +81,122 @@
         "days": 4,
         "excess_since": 3.47
       }
+    },
+    {
+      "id": "원자력",
+      "name": "원자력",
+      "count": 16,
+      "as_of": "2026-08-28",
+      "r1d": 0.3,
+      "r5d": 17.11,
+      "r1m": 28.93,
+      "r1y": 47.39,
+      "from_52w_high": -37.07,
+      "from_all_high": null,
+      "rs": {
+        "state": "above",
+        "window": 20,
+        "cross_date": "2026-08-25",
+        "days": 3,
+        "excess_since": 6.87
+      }
+    },
+    {
+      "id": "음식료",
+      "name": "음식료",
+      "count": 11,
+      "as_of": "2026-08-28",
+      "r1d": 3.43,
+      "r5d": 6.07,
+      "r1m": 13.6,
+      "r1y": 2.31,
+      "from_52w_high": -6.51,
+      "from_all_high": null,
+      "rs": {
+        "state": "above",
+        "window": 20,
+        "cross_date": "2026-08-28",
+        "days": 0,
+        "excess_since": 0.0
+      }
+    },
+    {
+      "id": "이차전지",
+      "name": "이차전지",
+      "count": 14,
+      "as_of": "2026-08-28",
+      "r1d": 0.21,
+      "r5d": 13.6,
+      "r1m": 30.81,
+      "r1y": 23.95,
+      "from_52w_high": -36.32,
+      "from_all_high": null,
+      "rs": {
+        "state": "above",
+        "window": 20,
+        "cross_date": "2026-08-24",
+        "days": 4,
+        "excess_since": 4.13
+      }
+    },
+    {
+      "id": "전력기기",
+      "name": "전력기기",
+      "count": 9,
+      "as_of": "2026-08-28",
+      "r1d": -0.29,
+      "r5d": 14.56,
+      "r1m": 31.42,
+      "r1y": 102.14,
+      "from_52w_high": -38.82,
+      "from_all_high": null,
+      "rs": {
+        "state": "above",
+        "window": 20,
+        "cross_date": "2026-08-25",
+        "days": 3,
+        "excess_since": 9.12
+      }
+    },
+    {
+      "id": "조선",
+      "name": "조선",
+      "count": 14,
+      "as_of": "2026-08-28",
+      "r1d": -0.11,
+      "r5d": 4.8,
+      "r1m": 7.5,
+      "r1y": -11.0,
+      "from_52w_high": -37.89,
+      "from_all_high": null,
+      "rs": {
+        "state": "below",
+        "window": 20,
+        "cross_date": "2026-08-20",
+        "days": 6,
+        "excess_since": 0.98
+      }
+    },
+    {
+      "id": "화장품",
+      "name": "화장품",
+      "count": 13,
+      "as_of": "2026-08-28",
+      "r1d": 7.27,
+      "r5d": 10.15,
+      "r1m": 36.55,
+      "r1y": 13.13,
+      "from_52w_high": 0.0,
+      "from_all_high": null,
+      "rs": {
+        "state": "above",
+        "window": 20,
+        "cross_date": "2026-07-01",
+        "days": 40,
+        "excess_since": 68.63
+      }
     }
   ],
   "failed_themes": [],
-  "stale_themes": [
-    "원자력",
-    "데이터센터",
-    "반도체"
-  ]
+  "stale_themes": []
 }

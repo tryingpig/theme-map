@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-29 05:58",
+  "updated_at": "2026-08-31 09:42",
   "source": "notion",
   "stocks": [
     {
@@ -7,7 +7,8 @@
       "code": "034020",
       "market": "KS",
       "themes": [
-        "원자력"
+        "원자력",
+        "전력기기"
       ],
       "role": "주기기",
       "desc": "원자로·증기발생기 등 NSSS 주기기, SMR",
@@ -85,7 +86,8 @@
       "code": "083650",
       "market": "KQ",
       "themes": [
-        "원자력"
+        "원자력",
+        "전력기기"
       ],
       "role": "기자재",
       "desc": "복수기·열교환기·HRSG",
@@ -208,6 +210,97 @@
       "desc": "원전 가동중검사·비파괴검사",
       "note": "",
       "order": 54,
+      "active": true
+    },
+    {
+      "name": "LG생활건강",
+      "code": "051900",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "화장품·생활용품·음료 3개 축, 후·숨 등 럭셔리",
+      "note": "",
+      "order": 100,
+      "active": true
+    },
+    {
+      "name": "아모레퍼시픽",
+      "code": "090430",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "설화수·라네즈 등 브랜드, 중국·미주 채널",
+      "note": "",
+      "order": 101,
+      "active": true
+    },
+    {
+      "name": "에이피알",
+      "code": "278470",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "메디큐브 등 뷰티 디바이스·스킨케어",
+      "note": "",
+      "order": 102,
+      "active": true
+    },
+    {
+      "name": "브이티",
+      "code": "018290",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "리들샷 등 스킨케어, 일본 채널 강세",
+      "note": "",
+      "order": 103,
+      "active": true
+    },
+    {
+      "name": "클리오",
+      "code": "237880",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "색조 중심 브랜드(클리오·페리페라)",
+      "note": "",
+      "order": 104,
+      "active": true
+    },
+    {
+      "name": "달바글로벌",
+      "code": "483650",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "달바 스킨케어, 해외 직판 비중 높음",
+      "note": "",
+      "order": 105,
+      "active": true
+    },
+    {
+      "name": "아이패밀리에스씨",
+      "code": "114840",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "브랜드",
+      "desc": "롬앤 색조 브랜드, 일본·동남아 수출",
+      "note": "",
+      "order": 106,
       "active": true
     },
     {
@@ -624,6 +717,682 @@
       "desc": "메모리 모듈·SSD",
       "note": "",
       "order": 262,
+      "active": true
+    },
+    {
+      "name": "HD한국조선해양",
+      "code": "009540",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "조선소",
+      "desc": "HD현대 조선 중간지주, 수주 총괄",
+      "note": "",
+      "order": 300,
+      "active": true
+    },
+    {
+      "name": "HD현대중공업",
+      "code": "329180",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "조선소",
+      "desc": "상선·특수선(함정) 건조",
+      "note": "",
+      "order": 301,
+      "active": true
+    },
+    {
+      "name": "한화오션",
+      "code": "042660",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "조선소",
+      "desc": "LNG선·잠수함, 미국 필리조선소",
+      "note": "",
+      "order": 302,
+      "active": true
+    },
+    {
+      "name": "삼성중공업",
+      "code": "010140",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "조선소",
+      "desc": "LNG선·해양플랜트 중심",
+      "note": "",
+      "order": 303,
+      "active": true
+    },
+    {
+      "name": "대한조선",
+      "code": "439260",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "조선소",
+      "desc": "수에즈막스급 탱커 전문",
+      "note": "",
+      "order": 304,
+      "active": true
+    },
+    {
+      "name": "HJ중공업",
+      "code": "097230",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "조선소",
+      "desc": "중형 상선·관공선 + 건설 부문",
+      "note": "",
+      "order": 305,
+      "active": true
+    },
+    {
+      "name": "HD현대마린엔진",
+      "code": "071970",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "엔진",
+      "desc": "선박용 대형 엔진·부품",
+      "note": "",
+      "order": 310,
+      "active": true
+    },
+    {
+      "name": "한화엔진",
+      "code": "082740",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "엔진",
+      "desc": "선박 엔진(구 HSD엔진)",
+      "note": "",
+      "order": 311,
+      "active": true
+    },
+    {
+      "name": "한국카본",
+      "code": "017960",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "보냉재",
+      "desc": "LNG선 화물창 보냉재",
+      "note": "",
+      "order": 320,
+      "active": true
+    },
+    {
+      "name": "동성화인텍",
+      "code": "033500",
+      "market": "KQ",
+      "themes": [
+        "조선"
+      ],
+      "role": "보냉재",
+      "desc": "LNG선 보냉재 폴리우레탄",
+      "note": "",
+      "order": 321,
+      "active": true
+    },
+    {
+      "name": "세진중공업",
+      "code": "075580",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "기자재",
+      "desc": "선박 데크하우스·LPG 탱크",
+      "note": "",
+      "order": 330,
+      "active": true
+    },
+    {
+      "name": "현대힘스",
+      "code": "460930",
+      "market": "KQ",
+      "themes": [
+        "조선"
+      ],
+      "role": "기자재",
+      "desc": "선박 블록·의장품 제작",
+      "note": "",
+      "order": 331,
+      "active": true
+    },
+    {
+      "name": "한라IMS",
+      "code": "092460",
+      "market": "KQ",
+      "themes": [
+        "조선"
+      ],
+      "role": "기자재",
+      "desc": "선박 계측·자동화 시스템",
+      "note": "",
+      "order": 332,
+      "active": true
+    },
+    {
+      "name": "SK오션플랜트",
+      "code": "100090",
+      "market": "KS",
+      "themes": [
+        "조선"
+      ],
+      "role": "기자재",
+      "desc": "해상풍력 하부구조물·특수선",
+      "note": "",
+      "order": 333,
+      "active": true
+    },
+    {
+      "name": "LG에너지솔루션",
+      "code": "373220",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "셀",
+      "desc": "배터리 셀, 북미 합작공장 다수",
+      "note": "",
+      "order": 400,
+      "active": true
+    },
+    {
+      "name": "삼성SDI",
+      "code": "006400",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "셀",
+      "desc": "각형·원통형 셀, 전자재료 병행",
+      "note": "",
+      "order": 401,
+      "active": true
+    },
+    {
+      "name": "SK이노베이션",
+      "code": "096770",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "셀",
+      "desc": "정유·화학 + SK온 배터리",
+      "note": "",
+      "order": 402,
+      "active": true
+    },
+    {
+      "name": "에코프로비엠",
+      "code": "247540",
+      "market": "KQ",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "양극재",
+      "desc": "하이니켈 양극재",
+      "note": "",
+      "order": 410,
+      "active": true
+    },
+    {
+      "name": "포스코퓨처엠",
+      "code": "003670",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "양극재",
+      "desc": "양극재·음극재 동시 생산",
+      "note": "",
+      "order": 411,
+      "active": true
+    },
+    {
+      "name": "엘앤에프",
+      "code": "066970",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "양극재",
+      "desc": "하이니켈 양극재, 테슬라 공급 이력",
+      "note": "",
+      "order": 412,
+      "active": true
+    },
+    {
+      "name": "LG화학",
+      "code": "051910",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "양극재",
+      "desc": "석유화학 + 양극재, LG에너지솔루션 지분",
+      "note": "",
+      "order": 413,
+      "active": true
+    },
+    {
+      "name": "에코프로",
+      "code": "086520",
+      "market": "KQ",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "전구체·원료",
+      "desc": "에코프로 그룹 지주, 소재 계열 총괄",
+      "note": "",
+      "order": 420,
+      "active": true
+    },
+    {
+      "name": "에코프로머티",
+      "code": "450080",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "전구체·원료",
+      "desc": "전구체·니켈 원료",
+      "note": "",
+      "order": 421,
+      "active": true
+    },
+    {
+      "name": "POSCO홀딩스",
+      "code": "005490",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "전구체·원료",
+      "desc": "철강 + 리튬·니켈 등 배터리 원료",
+      "note": "",
+      "order": 422,
+      "active": true
+    },
+    {
+      "name": "엔켐",
+      "code": "348370",
+      "market": "KQ",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "소재",
+      "desc": "전해액, 북미·유럽 증설",
+      "note": "",
+      "order": 430,
+      "active": true
+    },
+    {
+      "name": "SKC",
+      "code": "011790",
+      "market": "KS",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "소재",
+      "desc": "동박(SK넥실리스)·반도체 소재",
+      "note": "",
+      "order": 431,
+      "active": true
+    },
+    {
+      "name": "대주전자재료",
+      "code": "078600",
+      "market": "KQ",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "소재",
+      "desc": "실리콘 음극재, 전자부품 소재",
+      "note": "",
+      "order": 432,
+      "active": true
+    },
+    {
+      "name": "한중엔시에스",
+      "code": "107640",
+      "market": "KQ",
+      "themes": [
+        "이차전지"
+      ],
+      "role": "부품·모듈",
+      "desc": "배터리 냉각 부품(ESS·전기차)",
+      "note": "",
+      "order": 440,
+      "active": true
+    },
+    {
+      "name": "HD현대일렉트릭",
+      "code": "267260",
+      "market": "KS",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "중전기기",
+      "desc": "변압기·배전반, 북미 수출 주도",
+      "note": "",
+      "order": 500,
+      "active": true
+    },
+    {
+      "name": "효성중공업",
+      "code": "298040",
+      "market": "KS",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "중전기기",
+      "desc": "초고압 변압기·STATCOM + 건설",
+      "note": "",
+      "order": 501,
+      "active": true
+    },
+    {
+      "name": "LS ELECTRIC",
+      "code": "010120",
+      "market": "KS",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "중전기기",
+      "desc": "배전·자동화 기기, 북미 확대",
+      "note": "",
+      "order": 502,
+      "active": true
+    },
+    {
+      "name": "산일전기",
+      "code": "062040",
+      "market": "KS",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "중전기기",
+      "desc": "특수 변압기, 미국 데이터센터향",
+      "note": "",
+      "order": 503,
+      "active": true
+    },
+    {
+      "name": "제룡전기",
+      "code": "033100",
+      "market": "KQ",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "중전기기",
+      "desc": "주상변압기, 미국 배전 수출",
+      "note": "",
+      "order": 504,
+      "active": true
+    },
+    {
+      "name": "대한전선",
+      "code": "001440",
+      "market": "KS",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "전선",
+      "desc": "초고압 전선·해저케이블",
+      "note": "",
+      "order": 510,
+      "active": true
+    },
+    {
+      "name": "일진전기",
+      "code": "103590",
+      "market": "KS",
+      "themes": [
+        "전력기기"
+      ],
+      "role": "전선",
+      "desc": "전선·변압기, 미국 수주 확대",
+      "note": "",
+      "order": 511,
+      "active": true
+    },
+    {
+      "name": "한국콜마",
+      "code": "161890",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "화장품 ODM 1위권, 제약·건기식 병행",
+      "note": "",
+      "order": 1100,
+      "active": true
+    },
+    {
+      "name": "코스맥스",
+      "code": "192820",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "화장품 ODM, 중국·미국 생산기지",
+      "note": "",
+      "order": 1101,
+      "active": true
+    },
+    {
+      "name": "코스메카코리아",
+      "code": "241710",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "화장품 ODM, 미국 잉글우드랩 자회사",
+      "note": "",
+      "order": 1102,
+      "active": true
+    },
+    {
+      "name": "씨앤씨인터내셔널",
+      "code": "352480",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "색조 전문 ODM, 글로벌 브랜드 납품",
+      "note": "",
+      "order": 1103,
+      "active": true
+    },
+    {
+      "name": "펌텍코리아",
+      "code": "251970",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "부자재",
+      "desc": "화장품 용기·펌프 등 부자재",
+      "note": "",
+      "order": 1200,
+      "active": true
+    },
+    {
+      "name": "실리콘투",
+      "code": "257720",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "유통·수출",
+      "desc": "K뷰티 역직구 유통 플랫폼(스타일코리안)",
+      "note": "",
+      "order": 1300,
+      "active": true
+    },
+    {
+      "name": "CJ제일제당",
+      "code": "097950",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "가공식품·바이오·사료, 글로벌 만두",
+      "note": "",
+      "order": 2000,
+      "active": true
+    },
+    {
+      "name": "롯데웰푸드",
+      "code": "280360",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "제과·빙과·육가공 통합 법인",
+      "note": "",
+      "order": 2001,
+      "active": true
+    },
+    {
+      "name": "오뚜기",
+      "code": "007310",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "라면·소스·간편식 종합식품",
+      "note": "",
+      "order": 2002,
+      "active": true
+    },
+    {
+      "name": "풀무원",
+      "code": "017810",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "두부·나물 등 신선식품, 미국 사업",
+      "note": "",
+      "order": 2003,
+      "active": true
+    },
+    {
+      "name": "농심",
+      "code": "004370",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "라면·스낵",
+      "desc": "신라면 등 라면·스낵, 미국 공장",
+      "note": "",
+      "order": 2100,
+      "active": true
+    },
+    {
+      "name": "삼양식품",
+      "code": "003230",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "라면·스낵",
+      "desc": "불닭 시리즈 수출 주도",
+      "note": "",
+      "order": 2101,
+      "active": true
+    },
+    {
+      "name": "오리온",
+      "code": "271560",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "라면·스낵",
+      "desc": "제과, 중국·베트남·러시아 법인",
+      "note": "",
+      "order": 2102,
+      "active": true
+    },
+    {
+      "name": "롯데칠성",
+      "code": "005300",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "음료·주류",
+      "desc": "음료·주류 통합, 필리핀 펩시",
+      "note": "",
+      "order": 2200,
+      "active": true
+    },
+    {
+      "name": "하이트진로",
+      "code": "000080",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "음료·주류",
+      "desc": "소주·맥주(참이슬·테라)",
+      "note": "",
+      "order": 2201,
+      "active": true
+    },
+    {
+      "name": "빙그레",
+      "code": "005180",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "유가공·빙과",
+      "desc": "바나나맛우유·빙과, 해태아이스 자회사",
+      "note": "",
+      "order": 2300,
+      "active": true
+    },
+    {
+      "name": "KT&G",
+      "code": "033780",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "담배",
+      "desc": "담배·건기식(KGC인삼공사)",
+      "note": "",
+      "order": 2400,
       "active": true
     }
   ]
