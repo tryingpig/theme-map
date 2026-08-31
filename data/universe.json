@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-31 09:42",
+  "updated_at": "2026-09-01 00:14",
   "source": "notion",
   "stocks": [
     {
@@ -86,8 +86,7 @@
       "code": "083650",
       "market": "KQ",
       "themes": [
-        "원자력",
-        "전력기기"
+        "원자력"
       ],
       "role": "기자재",
       "desc": "복수기·열교환기·HRSG",
@@ -317,6 +316,19 @@
       "active": true
     },
     {
+      "name": "한국콜마",
+      "code": "161890",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "화장품 ODM 1위권, 제약·건기식 병행",
+      "note": "",
+      "order": 110,
+      "active": true
+    },
+    {
       "name": "SK이터닉스",
       "code": "475150",
       "market": "KS",
@@ -325,6 +337,19 @@
       ],
       "role": "전력·발전",
       "desc": "신재생에너지 발전·데이터센터 사업",
+      "note": "",
+      "order": 111,
+      "active": true
+    },
+    {
+      "name": "코스맥스",
+      "code": "192820",
+      "market": "KS",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "화장품 ODM, 중국·미국 생산기지",
       "note": "",
       "order": 111,
       "active": true
@@ -343,6 +368,32 @@
       "active": true
     },
     {
+      "name": "코스메카코리아",
+      "code": "241710",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "화장품 ODM, 미국 잉글우드랩 자회사",
+      "note": "",
+      "order": 112,
+      "active": true
+    },
+    {
+      "name": "씨앤씨인터내셔널",
+      "code": "352480",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "ODM",
+      "desc": "색조 전문 ODM, 글로벌 브랜드 납품",
+      "note": "",
+      "order": 113,
+      "active": true
+    },
+    {
       "name": "GS건설",
       "code": "006360",
       "market": "KS",
@@ -351,6 +402,19 @@
       ],
       "role": "EPC·건설",
       "desc": "데이터센터 EPC·개발",
+      "note": "",
+      "order": 120,
+      "active": true
+    },
+    {
+      "name": "펌텍코리아",
+      "code": "251970",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "부자재",
+      "desc": "화장품 용기·펌프 등 부자재",
       "note": "",
       "order": 120,
       "active": true
@@ -382,6 +446,19 @@
       "active": true
     },
     {
+      "name": "실리콘투",
+      "code": "257720",
+      "market": "KQ",
+      "themes": [
+        "화장품"
+      ],
+      "role": "유통·수출",
+      "desc": "K뷰티 역직구 유통 플랫폼(스타일코리안)",
+      "note": "",
+      "order": 130,
+      "active": true
+    },
+    {
       "name": "삼아알미늄",
       "code": "006110",
       "market": "KS",
@@ -392,6 +469,71 @@
       "desc": "알루미늄박",
       "note": "",
       "order": 140,
+      "active": true
+    },
+    {
+      "name": "CJ제일제당",
+      "code": "097950",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "가공식품·바이오·사료, 글로벌 만두",
+      "note": "",
+      "order": 200,
+      "active": true
+    },
+    {
+      "name": "롯데웰푸드",
+      "code": "280360",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "제과·빙과·육가공 통합 법인",
+      "note": "",
+      "order": 201,
+      "active": true
+    },
+    {
+      "name": "오뚜기",
+      "code": "007310",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "라면·소스·간편식 종합식품",
+      "note": "",
+      "order": 202,
+      "active": true
+    },
+    {
+      "name": "풀무원",
+      "code": "017810",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "종합식품",
+      "desc": "두부·나물 등 신선식품, 미국 사업",
+      "note": "",
+      "order": 203,
+      "active": true
+    },
+    {
+      "name": "농심",
+      "code": "004370",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "라면·스낵",
+      "desc": "신라면 등 라면·스낵, 미국 공장",
+      "note": "",
+      "order": 210,
       "active": true
     },
     {
@@ -421,6 +563,19 @@
       "active": true
     },
     {
+      "name": "삼양식품",
+      "code": "003230",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "라면·스낵",
+      "desc": "불닭 시리즈 수출 주도",
+      "note": "",
+      "order": 211,
+      "active": true
+    },
+    {
       "name": "DB하이텍",
       "code": "000990",
       "market": "KS",
@@ -431,6 +586,32 @@
       "desc": "8인치 파운드리(아날로그·전력반도체)",
       "note": "",
       "order": 212,
+      "active": true
+    },
+    {
+      "name": "오리온",
+      "code": "271560",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "라면·스낵",
+      "desc": "제과, 중국·베트남·러시아 법인",
+      "note": "",
+      "order": 212,
+      "active": true
+    },
+    {
+      "name": "롯데칠성",
+      "code": "005300",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "음료·주류",
+      "desc": "음료·주류 통합, 필리핀 펩시",
+      "note": "",
+      "order": 220,
       "active": true
     },
     {
@@ -455,6 +636,19 @@
       ],
       "role": "기판·PCB",
       "desc": "반도체 기판·카메라모듈",
+      "note": "",
+      "order": 221,
+      "active": true
+    },
+    {
+      "name": "하이트진로",
+      "code": "000080",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "음료·주류",
+      "desc": "소주·맥주(참이슬·테라)",
       "note": "",
       "order": 221,
       "active": true
@@ -525,6 +719,19 @@
       "active": true
     },
     {
+      "name": "빙그레",
+      "code": "005180",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "유가공·빙과",
+      "desc": "바나나맛우유·빙과, 해태아이스 자회사",
+      "note": "",
+      "order": 230,
+      "active": true
+    },
+    {
       "name": "한미반도체",
       "code": "042700",
       "market": "KS",
@@ -574,6 +781,19 @@
       "desc": "테스트 핸들러·범용테스터",
       "note": "",
       "order": 233,
+      "active": true
+    },
+    {
+      "name": "KT&G",
+      "code": "033780",
+      "market": "KS",
+      "themes": [
+        "음식료"
+      ],
+      "role": "담배",
+      "desc": "담배·건기식(KGC인삼공사)",
+      "note": "",
+      "order": 240,
       "active": true
     },
     {
@@ -1175,224 +1395,16 @@
       "active": true
     },
     {
-      "name": "한국콜마",
-      "code": "161890",
-      "market": "KS",
-      "themes": [
-        "화장품"
-      ],
-      "role": "ODM",
-      "desc": "화장품 ODM 1위권, 제약·건기식 병행",
-      "note": "",
-      "order": 1100,
-      "active": true
-    },
-    {
-      "name": "코스맥스",
-      "code": "192820",
-      "market": "KS",
-      "themes": [
-        "화장품"
-      ],
-      "role": "ODM",
-      "desc": "화장품 ODM, 중국·미국 생산기지",
-      "note": "",
-      "order": 1101,
-      "active": true
-    },
-    {
-      "name": "코스메카코리아",
-      "code": "241710",
+      "name": "비에이치아이",
+      "code": "083650",
       "market": "KQ",
       "themes": [
-        "화장품"
+        "전력기기"
       ],
-      "role": "ODM",
-      "desc": "화장품 ODM, 미국 잉글우드랩 자회사",
+      "role": "발전기자재",
+      "desc": "HRSG 등 발전 보조기기",
       "note": "",
-      "order": 1102,
-      "active": true
-    },
-    {
-      "name": "씨앤씨인터내셔널",
-      "code": "352480",
-      "market": "KQ",
-      "themes": [
-        "화장품"
-      ],
-      "role": "ODM",
-      "desc": "색조 전문 ODM, 글로벌 브랜드 납품",
-      "note": "",
-      "order": 1103,
-      "active": true
-    },
-    {
-      "name": "펌텍코리아",
-      "code": "251970",
-      "market": "KQ",
-      "themes": [
-        "화장품"
-      ],
-      "role": "부자재",
-      "desc": "화장품 용기·펌프 등 부자재",
-      "note": "",
-      "order": 1200,
-      "active": true
-    },
-    {
-      "name": "실리콘투",
-      "code": "257720",
-      "market": "KQ",
-      "themes": [
-        "화장품"
-      ],
-      "role": "유통·수출",
-      "desc": "K뷰티 역직구 유통 플랫폼(스타일코리안)",
-      "note": "",
-      "order": 1300,
-      "active": true
-    },
-    {
-      "name": "CJ제일제당",
-      "code": "097950",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "종합식품",
-      "desc": "가공식품·바이오·사료, 글로벌 만두",
-      "note": "",
-      "order": 2000,
-      "active": true
-    },
-    {
-      "name": "롯데웰푸드",
-      "code": "280360",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "종합식품",
-      "desc": "제과·빙과·육가공 통합 법인",
-      "note": "",
-      "order": 2001,
-      "active": true
-    },
-    {
-      "name": "오뚜기",
-      "code": "007310",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "종합식품",
-      "desc": "라면·소스·간편식 종합식품",
-      "note": "",
-      "order": 2002,
-      "active": true
-    },
-    {
-      "name": "풀무원",
-      "code": "017810",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "종합식품",
-      "desc": "두부·나물 등 신선식품, 미국 사업",
-      "note": "",
-      "order": 2003,
-      "active": true
-    },
-    {
-      "name": "농심",
-      "code": "004370",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "라면·스낵",
-      "desc": "신라면 등 라면·스낵, 미국 공장",
-      "note": "",
-      "order": 2100,
-      "active": true
-    },
-    {
-      "name": "삼양식품",
-      "code": "003230",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "라면·스낵",
-      "desc": "불닭 시리즈 수출 주도",
-      "note": "",
-      "order": 2101,
-      "active": true
-    },
-    {
-      "name": "오리온",
-      "code": "271560",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "라면·스낵",
-      "desc": "제과, 중국·베트남·러시아 법인",
-      "note": "",
-      "order": 2102,
-      "active": true
-    },
-    {
-      "name": "롯데칠성",
-      "code": "005300",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "음료·주류",
-      "desc": "음료·주류 통합, 필리핀 펩시",
-      "note": "",
-      "order": 2200,
-      "active": true
-    },
-    {
-      "name": "하이트진로",
-      "code": "000080",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "음료·주류",
-      "desc": "소주·맥주(참이슬·테라)",
-      "note": "",
-      "order": 2201,
-      "active": true
-    },
-    {
-      "name": "빙그레",
-      "code": "005180",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "유가공·빙과",
-      "desc": "바나나맛우유·빙과, 해태아이스 자회사",
-      "note": "",
-      "order": 2300,
-      "active": true
-    },
-    {
-      "name": "KT&G",
-      "code": "033780",
-      "market": "KS",
-      "themes": [
-        "음식료"
-      ],
-      "role": "담배",
-      "desc": "담배·건기식(KGC인삼공사)",
-      "note": "",
-      "order": 2400,
+      "order": 520,
       "active": true
     }
   ]
