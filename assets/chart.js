@@ -12,7 +12,8 @@
 
 const Chart = (() => {
   const PAD = { top: 14, right: 72, bottom: 26, left: 50 };
-  const LABEL_GAP = 13;          // 선 끝 이름표가 서로 겹치지 않게 두는 최소 간격(px)
+  const LABEL_GAP = 15;          // 선 끝 이름표가 서로 겹치지 않게 두는 최소 간격(px). 글자 11.5px
+  const FOCUS_HIT = 14;          // 이 거리(px) 안에 있는 선을 "가리키고 있는" 선으로 본다
 
   const PERIODS = [
     { id: "1w", label: "1주", days: 7 },
@@ -121,13 +122,23 @@ const Chart = (() => {
     return d;
   }
 
-  /* 선 끝 이름표가 겹치지 않게 위에서부터 밀어 내린다. */
+  /* 선 끝 이름표가 겹치지 않게 자리를 잡는다. 원래 y(y0)는 유도선을 그리려고 남겨 둔다.
+     아래로만 밀면 바닥을 넘치고, 넘친 만큼 전체를 위로 옮기면 이번엔 위가 잘린다.
+     그래서 아래로 밀고 → 바닥에서 되밀고 → 위에서 다시 눌러 담는 3단이다. */
   function spread(items, top, bottom) {
     items.sort((a, b) => a.y - b.y);
+
     let prev = -Infinity;
     items.forEach((it) => { it.y = Math.max(it.y, prev + LABEL_GAP); prev = it.y; });
-    const over = items.length ? items[items.length - 1].y - bottom : 0;
-    if (over > 0) items.forEach((it) => { it.y = Math.max(top, it.y - over); });
+
+    let next = bottom;
+    for (let i = items.length - 1; i >= 0; i--) {
+      items[i].y = Math.min(items[i].y, next);
+      next = items[i].y - LABEL_GAP;
+    }
+
+    prev = top;
+    items.forEach((it) => { it.y = Math.max(it.y, prev); prev = it.y + LABEL_GAP; });
     return items;
   }
 
@@ -174,11 +185,13 @@ const Chart = (() => {
     const xt = xTicks(view, width < 520 ? 4 : 6).map((t) => `
       <text class="xtick" x="${x(t.i).toFixed(1)}" y="${height - 8}">${t.text}</text>`).join("");
 
+    /* data-id는 강조(한 계열만 남기고 나머지를 물리기)가 잡을 손잡이다. */
     const maPaths = lines.filter((s) => s.mapct).map((s) => `
-      <path class="line ma" style="stroke:${s.color}" d="${pathOf(s.mapct, x, y)}"/>`).join("");
+      <path class="line ma" data-id="${esc(s.id)}" style="stroke:${s.color}"
+            d="${pathOf(s.mapct, x, y)}"/>`).join("");
 
     const paths = lines.map((s) => `
-      <path class="line${s.kind === "market" ? " mkt" : ""}" style="stroke:${s.color}"
+      <path class="line${s.kind === "market" ? " mkt" : ""}" data-id="${esc(s.id)}" style="stroke:${s.color}"
             ${s.dash ? `stroke-dasharray="${s.dash}"` : ""} d="${pathOf(s.pct, x, y)}"/>`).join("");
 
     /* 전환 마커 — "여기서부터 시장을 이기기 시작했다"는 한 점.
@@ -189,26 +202,34 @@ const Chart = (() => {
       const i = view.indexOf(mk.date);
       if (i < 0 || s.pct[i] === null) return "";
       const cx = x(i).toFixed(1), cy = y(s.pct[i]).toFixed(1);
-      return `<g class="mark"><circle cx="${cx}" cy="${cy}" r="6" style="stroke:${s.color}"/>
+      return `<g class="mark" data-id="${esc(s.id)}"><circle cx="${cx}" cy="${cy}" r="6" style="stroke:${s.color}"/>
               <circle class="dot" cx="${cx}" cy="${cy}" r="2.5" style="fill:${s.color}"/></g>`;
     }).join("");
 
     /* 선 끝 이름표 — 라이트 모드에는 대비가 낮은 색(노랑·아쿠아·마젠타)이 섞여 있어
        색만으로 계열을 구분하게 두지 않는다. 이름표와 아래 표가 그 역할을 한다. */
+    const labelX = width - PAD.right + 9;
     const ends = spread(lines.map((s) => {
       let li = -1;
       for (let i = s.pct.length - 1; i >= 0; i--) if (s.pct[i] !== null) { li = i; break; }
-      return { name: s.name, y: y(s.pct[li]), color: s.color };
+      const y0 = y(s.pct[li]);
+      return { id: s.id, name: s.name, y: y0, y0, x0: x(li), color: s.color };
     }), PAD.top + 6, height - PAD.bottom);
 
+    /* 겹침을 피해 밀려난 이름표는 제 선에서 떨어진다. 어느 선의 이름인지 잃지 않게
+       원래 끝점까지 가는 유도선을 깐다(2px 넘게 밀린 것만). */
+    const leads = ends.filter((e) => Math.abs(e.y - e.y0) > 2).map((e) => `
+      <path class="lead" data-id="${esc(e.id)}" style="stroke:${e.color}"
+            d="M${e.x0.toFixed(1)} ${e.y0.toFixed(1)}H${(e.x0 + 5).toFixed(1)}L${(labelX - 3).toFixed(1)} ${e.y.toFixed(1)}"/>`).join("");
+
     const endLabels = ends.map((e) => `
-      <text class="endlabel" style="fill:${e.color}" x="${width - PAD.right + 7}"
+      <text class="endlabel" data-id="${esc(e.id)}" style="fill:${e.color}" x="${labelX}"
             y="${e.y.toFixed(1)}">${esc(e.name)}</text>`).join("");
 
     host.innerHTML = `
       <svg class="chart" width="${width}" height="${height}" role="img"
            aria-label="기간 시작 대비 수익률 비교 차트">
-        ${grid}${xt}${maPaths}${paths}${marks}${endLabels}
+        ${grid}${xt}${leads}${maPaths}${paths}${marks}${endLabels}
         <g class="cross" hidden>
           <line class="crossline" y1="${PAD.top}" y2="${height - PAD.bottom}"/>
           <g class="dots"></g>
@@ -216,11 +237,17 @@ const Chart = (() => {
         <rect class="hit" x="${PAD.left}" y="${PAD.top}" width="${plotW}" height="${plotH}"/>
       </svg>
       <div class="chart-tip" hidden></div>`;
+    host.classList.remove("on-focus");   // 다시 그리면 강조는 풀린다(고정도 함께)
 
     attachHover(host, { lines, view, x, y, width, plotW, mode });
   }
 
-  /* 크로스헤어 + 툴팁. 모든 점에 값을 달 수는 없으니 값 읽기는 여기서 한다. */
+  /* 크로스헤어 + 툴팁 + 강조.
+
+     선이 열 개쯤 되면 색만으로는 어느 게 어느 건지 못 읽는다. 그래서 가리키는 선 하나를
+     남기고 나머지를 뒤로 물린다(지우지는 않는다 — 비교 대상이 사라지면 의미가 없다).
+     선은 2px라 정확히 짚기 어려우니, 마우스가 있는 x에서 **세로로 가장 가까운 선**을
+     가리키는 것으로 본다. 누르면 그 선에 고정되고, 다시 누르거나 빈 곳을 누르면 풀린다. */
   function attachHover(host, ctx) {
     const svg = host.querySelector("svg");
     const cross = host.querySelector(".cross");
@@ -228,12 +255,44 @@ const Chart = (() => {
     const dots = host.querySelector(".dots");
     const tip = host.querySelector(".chart-tip");
     const n = ctx.view.length;
+    let pinned = null, hovered = null, painted = null;
 
-    function move(ev) {
+    function paint() {
+      const id = pinned || hovered;
+      if (id === painted) return;
+      painted = id;
+      host.classList.toggle("on-focus", !!id);
+      host.querySelectorAll("[data-id]").forEach((el) => {
+        el.classList.toggle("on", el.dataset.id === id);
+      });
+    }
+
+    /* 그 x 위치에서 포인터와 세로로 가장 가까운 선. 너무 멀면 아무것도 가리키지 않은 것. */
+    function nearest(ev, i) {
+      const r = svg.getBoundingClientRect();
+      const k = ctx.width / (r.width || ctx.width);
+      const py = (ev.clientY - r.top) * k;
+      let best = null, bestD = FOCUS_HIT;
+      ctx.lines.forEach((s) => {
+        const v = s.pct[i];
+        if (v === null || v === undefined) return;
+        const d = Math.abs(ctx.y(v) - py);
+        if (d < bestD) { bestD = d; best = s.id; }
+      });
+      return best;
+    }
+
+    function indexAt(ev) {
       const r = svg.getBoundingClientRect();
       const px = ((ev.clientX - r.left) / r.width) * ctx.width;
-      let i = Math.round(((px - PAD.left) / ctx.plotW) * (n - 1));
-      i = Math.max(0, Math.min(n - 1, i));
+      const i = Math.round(((px - PAD.left) / ctx.plotW) * (n - 1));
+      return Math.max(0, Math.min(n - 1, i));
+    }
+
+    function move(ev) {
+      const i = indexAt(ev);
+      hovered = nearest(ev, i);
+      paint();
 
       const cx = ctx.x(i);
       cross.hidden = false;
@@ -241,7 +300,7 @@ const Chart = (() => {
       cline.setAttribute("x2", cx);
 
       const rows = ctx.lines
-        .map((s) => ({ name: s.name, color: s.color, v: s.pct[i] }))
+        .map((s) => ({ id: s.id, name: s.name, color: s.color, v: s.pct[i] }))
         .filter((r2) => r2.v !== null)
         .sort((a, b) => b.v - a.v);
 
@@ -252,9 +311,11 @@ const Chart = (() => {
       tip.hidden = false;
       tip.innerHTML =
         `<div class="tip-date">${ctx.view[i]}${ctx.mode === "rel" ? " · 코스피 대비" : ""}</div>` +
-        rows.map((r2) => `<div class="tip-row"><i style="background:${r2.color}"></i>
+        rows.map((r2) => `<div class="tip-row" data-id="${esc(r2.id)}"><i style="background:${r2.color}"></i>
           <span class="tip-name">${esc(r2.name)}</span>
           <span class="tip-v ${r2.v > 0 ? "up" : r2.v < 0 ? "dn" : ""}">${fmtPct(r2.v, 2)}</span></div>`).join("");
+      painted = undefined;    // 툴팁 줄이 새로 그려졌으니 강조를 다시 입힌다
+      paint();
 
       const w = tip.offsetWidth;
       const left = cx + 14 + w > ctx.width ? cx - w - 14 : cx + 14;
@@ -263,9 +324,27 @@ const Chart = (() => {
     }
 
     svg.addEventListener("pointermove", move);
-    svg.addEventListener("pointerdown", move);
-    svg.addEventListener("pointerleave", () => { cross.hidden = true; tip.hidden = true; });
+    svg.addEventListener("pointerdown", (ev) => {
+      const id = nearest(ev, indexAt(ev));
+      pinned = (id && pinned === id) ? null : id;   // 같은 선을 또 누르면 풀고, 빈 곳이면 해제
+      move(ev);
+    });
+    svg.addEventListener("pointerleave", () => {
+      cross.hidden = true; tip.hidden = true;
+      hovered = null; paint();
+    });
+
+    // 범례·순위표에서도 같은 강조를 걸 수 있게 손잡이를 남긴다.
+    FOCUS.set(host, (id) => { hovered = id; paint(); });
   }
 
-  return { render, pctFrom, fmtPct, PERIODS, fromIndex };
+  /* 차트 밖(범례 칩, 순위표 행)에서 계열 하나를 강조한다. id가 없으면 해제.
+     고정(pin)된 게 있으면 그쪽이 우선이라 밖에서 건드려도 흔들리지 않는다. */
+  const FOCUS = new WeakMap();
+  function focus(host, id) {
+    const fn = host && FOCUS.get(host);
+    if (fn) fn(id || null);
+  }
+
+  return { render, pctFrom, fmtPct, PERIODS, fromIndex, focus };
 })();

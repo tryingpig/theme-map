@@ -97,6 +97,13 @@ function renderLegend() {
   $("legend").querySelectorAll("button[data-m]").forEach((b) => {
     b.onclick = () => toggleMarket(b.dataset.m);
   });
+
+  // 칩에 마우스를 올리면 차트에서 그 선만 남는다 — 켜고 끄지 않고도 찾을 수 있게.
+  $("legend").querySelectorAll("button.chip.on").forEach((b) => {
+    const id = b.dataset.t || b.dataset.m;
+    b.onpointerenter = () => Chart.focus($("chart"), id);
+    b.onpointerleave = () => Chart.focus($("chart"), null);
+  });
 }
 
 /* 같은 색 슬롯을 쓰는 테마가 동시에 켜지지 않게 한다.
@@ -153,7 +160,7 @@ function renderTable(rows) {
   $("rankHead").innerHTML = `<th>이름</th>${cols.map((c) => `<th>${c.label}</th>`).join("")}`
     + `<th title="상대강도(테마÷코스피)가 20일 이동평균을 넘은 날부터">우위 전환</th><th>구성</th>`;
   $("rankBody").innerHTML = rows.map((r) => `
-    <tr class="${r.kind === "market" ? "mkt" : "theme"}"${r.kind === "theme" ? ` data-t="${r.id}"` : ""}>
+    <tr class="${r.kind === "market" ? "mkt" : "theme"}" ${r.kind === "theme" ? `data-t="${r.id}"` : `data-m="${r.id}"`}>
       <td class="name"><i class="dot" style="background:${r.color}"></i>${r.name}
         ${r.kind === "market" ? '<span class="tag">시장</span>' : '<span class="go">→</span>'}</td>
       ${cols.map((c) => (c.key === "excess" && r.kind === "market" && r.id === "KOSPI"
@@ -165,6 +172,14 @@ function renderTable(rows) {
 
   $("rankBody").querySelectorAll("tr[data-t]").forEach((tr) => {
     tr.onclick = () => { location.href = `theme.html?theme=${encodeURIComponent(tr.dataset.t)}`; };
+  });
+
+  // 표에서 행을 훑을 때도 차트가 같이 반응한다 — 순위와 선을 눈으로 잇는 게 이 표의 일이다.
+  $("rankBody").querySelectorAll("tr").forEach((tr) => {
+    const id = tr.dataset.t || (tr.classList.contains("mkt") ? tr.dataset.m : null);
+    if (!id) return;
+    tr.onpointerenter = () => Chart.focus($("chart"), id);
+    tr.onpointerleave = () => Chart.focus($("chart"), null);
   });
 }
 
