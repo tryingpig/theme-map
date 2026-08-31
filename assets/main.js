@@ -251,8 +251,8 @@ async function init() {
   const ids = series.themes.map((t) => t.id);
   let saved = null;
   try { saved = JSON.parse(store.get("theme-map:main:visible", "null")); } catch (e) { /* noop */ }
-  state.visible = Array.isArray(saved) ? saved.filter((v) => ids.includes(v)) : ids.slice(0, 6);
-  if (!state.visible.length) state.visible = ids.slice(0, 6);
+  state.visible = Array.isArray(saved) ? saved.filter((v) => ids.includes(v)) : ids.slice(0, SLOTS);
+  if (!state.visible.length) state.visible = ids.slice(0, SLOTS);
 
   const mids = series.markets.map((m) => m.id);
   let savedM = null;
