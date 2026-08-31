@@ -7,6 +7,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # GITHUB_TOKEN 으로 민 커밋은 다른 워크플로를 트리거하지 않는다(GitHub 의 루프
+  # 방지 규칙). 그래서 update.yml 의 데이터 커밋은 위 push 트리거를 못 깨웠고,
+  # 레포 data/index.json 은 최신인데 사이트는 사람이 직접 push 한 시점에 멈춰
+  # 있었다(2026-09-01 확인: repo 09/01 00:15 vs 사이트 08/31 10:18).
+  # workflow_run 은 누가 밀었든 상관없이 걸리므로 이걸로 데이터 갱신을 잇는다.
+  workflow_run:
+    workflows: ["Update theme map data"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
