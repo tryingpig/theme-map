@@ -14,7 +14,15 @@ const MARKET_STYLE = {
 const PERIODS = Chart.PERIODS;
 
 const $ = (id) => document.getElementById(id);
-const state = { index: null, series: null, period: "1y", mode: "abs", visible: null, markets: null };
+const state = { index: null, series: null, period: "1y", mode: "abs", view: "overlay", visible: null, markets: null };
+
+/* 보기 방식 — 같은 데이터를 두 가지로 본다.
+   겹쳐보기는 테마끼리 직접 비교하는 화면이고, 조망은 "누가 시장을 이기나"를
+   한 번에 훑는 화면이다. 어느 쪽도 다른 쪽을 대신하지 못해서 둘 다 둔다. */
+const VIEWS = [
+  { id: "overlay", label: "겹쳐보기" },
+  { id: "grid", label: "조망" },
+];
 
 const fmtPct = (v, d = 2) => (v === null || v === undefined ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(d)}`);
 const store = {
@@ -77,6 +85,13 @@ function renderControls() {
   ).join("");
   $("modes").querySelectorAll("button").forEach((b) => {
     b.onclick = () => { state.mode = b.dataset.m; store.set("theme-map:main:mode", state.mode); draw(); };
+  });
+
+  $("views").innerHTML = VIEWS.map((v) =>
+    `<button type="button" class="seg${v.id === state.view ? " on" : ""}" data-v="${v.id}">${v.label}</button>`
+  ).join("");
+  $("views").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => { state.view = b.dataset.v; store.set("theme-map:main:view", state.view); draw(); };
   });
 }
 
@@ -223,18 +238,39 @@ function draw() {
                    && t.rs.state === "above" && t.rs.cross_date)
     .map((t) => ({ id: t.id, date: t.rs.cross_date }));
 
-  Chart.render($("chart"), {
-    dates, from, mode: state.mode, baseId: "KOSPI",
-    height: innerWidth < 640 ? 300 : 380,
-    series: visibleSeries(), baseValues: baseValues(), marks,
-  });
+  const grid = state.view === "grid";
+  $("chart").hidden = grid;
+  $("grid").hidden = !grid;
+
+  if (grid) {
+    // 조망에서는 테마만 칸이 된다 — 코스피는 칸마다 기준선으로 이미 들어가 있다.
+    const meta = {};
+    (state.index.themes || []).forEach((t) => { meta[t.id] = t; });
+    Chart.renderGrid($("grid"), {
+      dates, from, mode: state.mode,
+      series: visibleSeries().filter((s) => s.kind === "theme")
+        .map((s) => ({ ...s, count: (meta[s.id] || {}).count, rs: (meta[s.id] || {}).rs })),
+      baseValues: baseValues(),
+      href: (c) => `theme.html?theme=${encodeURIComponent(c.id)}`,
+    });
+  } else {
+    Chart.render($("chart"), {
+      dates, from, mode: state.mode, baseId: "KOSPI",
+      height: innerWidth < 640 ? 300 : 380,
+      series: visibleSeries(), baseValues: baseValues(), marks,
+    });
+  }
 
   const rows = buildRows(from);
   renderTable(rows);
-  $("chartNote").textContent = (state.mode === "rel"
-    ? `${dates[from]} 이후 코스피 대비 초과수익 · 0%선이 코스피`
-    : `${dates[from]} 종가 = 0% 기준`)
-    + (marks.length ? " · ◉ 는 코스피를 이기기 시작한 날" : "");
+  $("chartNote").textContent = grid
+    ? (state.mode === "rel"
+        ? "점선이 코스피 · 선이 점선 위면 그 기간 시장을 이긴 것 · 칸끼리 같은 눈금"
+        : `${dates[from]} 종가 = 0% 기준 · 회색 선이 코스피 · 칸끼리 같은 눈금`)
+    : (state.mode === "rel"
+        ? `${dates[from]} 이후 코스피 대비 초과수익 · 0%선이 코스피`
+        : `${dates[from]} 종가 = 0% 기준`)
+      + (marks.length ? " · ◉ 는 코스피를 이기기 시작한 날" : "");
 }
 
 function initThemeToggle() {
@@ -261,7 +297,9 @@ async function init() {
 
   state.period = store.get("theme-map:main:period", "1y");
   state.mode = store.get("theme-map:main:mode", "abs");
+  state.view = store.get("theme-map:main:view", "overlay");
   if (!PERIODS.some((p) => p.id === state.period)) state.period = "1y";
+  if (!VIEWS.some((v) => v.id === state.view)) state.view = "overlay";
 
   const ids = series.themes.map((t) => t.id);
   let saved = null;

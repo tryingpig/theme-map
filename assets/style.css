@@ -316,6 +316,34 @@ td.drop .v { position: relative; }
 /* 겹쳐서 밀려난 이름표를 제 선에 이어 주는 유도선 — 눈에 띄면 안 되니 아주 얇고 흐리게 */
 .lead { fill: none; stroke-width: 1; opacity: 0.4; }
 
+/* 조망 격자 — 테마마다 제 칸. 한 칸에 선이 둘뿐이라 겹칠 게 없다. */
+.mini-grid { display: grid; gap: 9px; grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1000px) { .mini-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .mini-grid { grid-template-columns: 1fr; } }
+.mini-grid[hidden] { display: none; }
+
+.mini-cell {
+  display: block; padding: 8px 9px 5px; text-decoration: none; color: inherit;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
+  transition: border-color .12s ease;
+}
+.mini-cell:hover { border-color: var(--muted); }
+.mini-head { display: flex; align-items: center; gap: 6px; }
+.mini-head i { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.mini-name { font-weight: 700; font-size: 13px; }
+.mini-v { margin-left: auto; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mini-v.up { color: var(--up-4); }
+.mini-v.dn { color: var(--dn-4); }
+.mini-sub { display: block; font-size: 11px; color: var(--muted); margin: 1px 0 2px; }
+.mini-sub .win { color: var(--up-4); font-weight: 600; }
+.mini-sub .lose { color: var(--dn-4); font-weight: 600; }
+.mini-plot { display: block; }
+.mini-plot svg { display: block; }
+.mini-zero { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 3; }
+.mini-ref { fill: none; stroke: var(--mkt-1); stroke-width: 1; opacity: 0.5; }
+.mini-line { fill: none; stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
+.mini-area { stroke: none; opacity: 0.14; }
+
 /* 강조 — 가리키는 선 하나만 남기고 나머지는 뒤로 물린다.
    선을 지우지 않는 게 핵심이다. 비교 대상이 사라지면 "이겼나"를 볼 수 없다. */
 .chart-host .line, .chart-host .endlabel, .chart-host .lead,

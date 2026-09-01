@@ -346,5 +346,95 @@ const Chart = (() => {
     if (fn) fn(id || null);
   }
 
-  return { render, pctFrom, fmtPct, PERIODS, fromIndex, focus };
+  /* ── 조망 격자(스몰 멀티플) ──────────────────────────────
+
+     겹쳐 그리기의 반대편이다. 테마마다 제 칸을 주면 한 칸에 선이 둘뿐이라
+     (기준선 + 그 테마) 겹칠 게 없고, 여덟 칸을 훑는 것만으로
+     "누가 기준선 위에 있나"를 읽는다.
+
+     **눈금은 모든 칸이 같이 쓴다.** 칸마다 축을 따로 주면 칸이 다 시원해 보이지만
+     칸끼리 크기 비교가 거짓말이 된다(작은 하락이 큰 상승처럼 보인다).
+     이상치가 있는 기간에는 나머지가 납작해지는데, 이 화면이 답하는 질문은
+     "이겼나(위/아래)"라 진폭은 부차적이고 정확한 값은 칸마다 숫자로 적어 둔다. */
+  const MINI = { h: 78, top: 7, bottom: 7, left: 4, right: 4 };
+
+  function renderGrid(host, cfg) {
+    const { dates, from, mode = "abs", height = MINI.h } = cfg;
+    const view = dates.slice(from);
+    if (view.length < 2) { host.innerHTML = '<p class="chart-empty">표시할 구간이 없습니다.</p>'; return null; }
+
+    const base = cfg.baseValues;
+    const cells = cfg.series.map((s) => {
+      const vals = mode === "rel" ? ratio(s.values, base) : s.values;
+      const b = firstValue(vals, from);
+      if (!b) return null;
+      const pct = toPct(vals, from, b);
+      // 절대 수익률에서는 코스피를 회색 선으로 같이 깐다(그때는 0%선이 코스피가 아니다).
+      const refB = mode === "abs" && base ? firstValue(base, from) : null;
+      return { ...s, pct, ref: refB ? toPct(base, from, refB) : null };
+    }).filter(Boolean);
+    if (!cells.length) { host.innerHTML = '<p class="chart-empty">표시할 테마가 없습니다.</p>'; return null; }
+
+    cells.forEach((c) => {
+      for (let i = c.pct.length - 1; i >= 0; i--) if (c.pct[i] !== null) { c.last = c.pct[i]; break; }
+    });
+    cells.sort((a, b) => (b.last ?? -Infinity) - (a.last ?? -Infinity));   // 잘 나가는 게 왼쪽 위
+
+    const all = cells.flatMap((c) => [...c.pct, ...(c.ref || [])]).filter((v) => v !== null);
+    let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+    const pad = (hi - lo) * 0.12 || 1;
+    lo -= pad; hi += pad;
+
+    /* 칸 하나를 그린다. 폭은 칸이 실제로 차지한 픽셀을 쓴다 —
+       viewBox로 늘이면 선 굵기가 가로로만 눌려 굵기가 제각각으로 보인다. */
+    const cellSvg = (c, w) => {
+      const n = c.pct.length;
+      const x = (i) => MINI.left + ((w - MINI.left - MINI.right) * i) / (n - 1);
+      const y = (v) => MINI.top + (height - MINI.top - MINI.bottom) * (1 - (v - lo) / (hi - lo));
+      const zero = y(0).toFixed(1);
+
+      const pts = c.pct.map((v, i) => (v === null ? null : [x(i), y(v)])).filter(Boolean);
+      const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join("");
+      const area = pts.length
+        ? `M${pts[0][0].toFixed(1)} ${zero}${line.slice(1)}L${pts[pts.length - 1][0].toFixed(1)} ${zero}Z`
+        : "";
+      const refLine = c.ref ? pathOf(c.ref, x, y) : "";
+
+      return `<svg width="${w}" height="${height}" role="img"
+                   aria-label="${esc(c.name)} ${fmtPct(c.last)}${mode === "rel" ? "p" : ""}">
+        <line class="mini-zero" x1="${MINI.left}" x2="${(w - MINI.right).toFixed(1)}" y1="${zero}" y2="${zero}"/>
+        ${refLine ? `<path class="mini-ref" d="${refLine}"/>` : ""}
+        <path class="mini-area" style="fill:${c.color}" d="${area}"/>
+        <path class="mini-line" style="stroke:${c.color}" d="${line}"/>
+      </svg>`;
+    };
+
+    // 코스피 대비 값은 %가 아니라 %p다(수익률의 차이지 수익률이 아니다).
+    const unit = mode === "rel" ? "p" : "";
+    host.innerHTML = cells.map((c) => {
+      const rs = c.rs;
+      const badge = rs
+        ? `<span class="${rs.state === "above" ? "win" : "lose"}">${rs.state === "above" ? "우위" : "열위"} D+${rs.days}</span>`
+        : "";
+      const sub = [badge, c.count ? `${c.count}종목` : ""].filter(Boolean).join(" · ");
+      return `<a class="mini-cell" data-id="${esc(c.id)}" href="${cfg.href ? cfg.href(c) : "#"}">
+        <span class="mini-head"><i style="background:${c.color}"></i>
+          <span class="mini-name">${esc(c.name)}</span>
+          <span class="mini-v ${c.last > 0 ? "up" : c.last < 0 ? "dn" : ""}">${fmtPct(c.last)}${unit}</span></span>
+        <span class="mini-sub">${sub || "&nbsp;"}</span>
+        <span class="mini-plot"></span>
+      </a>`;
+    }).join("");
+
+    // 칸이 자리를 잡은 뒤에야 실제 폭을 알 수 있다 — 그 폭으로 그려야 선 굵기가 고르다.
+    host.querySelectorAll(".mini-cell").forEach((el, k) => {
+      const slot = el.querySelector(".mini-plot");
+      const w = Math.max(80, Math.round(slot.clientWidth || 200));
+      slot.innerHTML = cellSvg(cells[k], w);
+    });
+
+    return { lo: lo + pad, hi: hi - pad, count: cells.length };
+  }
+
+  return { render, renderGrid, pctFrom, fmtPct, PERIODS, fromIndex, focus };
 })();
