@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-01 00:22",
+  "updated_at": "2026-09-01 22:40",
   "source": "notion",
   "stocks": [
     {
@@ -1405,6 +1405,253 @@
       "desc": "HRSG 등 발전 보조기기",
       "note": "",
       "order": 520,
+      "active": true
+    },
+    {
+      "name": "삼성화재",
+      "code": "000810",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "손해보험",
+      "desc": "국내 1위 손해보험사, 장기·자동차·일반보험",
+      "note": "",
+      "order": 530,
+      "active": true
+    },
+    {
+      "name": "DB손해보험",
+      "code": "005830",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "손해보험",
+      "desc": "손해보험 상위사, 장기·자동차보험 중심",
+      "note": "",
+      "order": 540,
+      "active": true
+    },
+    {
+      "name": "현대해상",
+      "code": "001450",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "손해보험",
+      "desc": "손해보험 상위사, 장기·자동차보험 중심",
+      "note": "",
+      "order": 550,
+      "active": true
+    },
+    {
+      "name": "삼성생명",
+      "code": "032830",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "생명보험",
+      "desc": "국내 1위 생명보험사, 보장성·연금 및 자산운용",
+      "note": "",
+      "order": 560,
+      "active": true
+    },
+    {
+      "name": "한화생명",
+      "code": "088350",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "생명보험",
+      "desc": "생명보험 상위사, 보장성·연금 중심",
+      "note": "",
+      "order": 570,
+      "active": true
+    },
+    {
+      "name": "미래에셋증권",
+      "code": "006800",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "대형 증권사, 위탁매매·자산관리·IB",
+      "note": "",
+      "order": 580,
+      "active": true
+    },
+    {
+      "name": "키움증권",
+      "code": "039490",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "온라인 위탁매매 점유율 1위",
+      "note": "",
+      "order": 590,
+      "active": true
+    },
+    {
+      "name": "삼성증권",
+      "code": "016360",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "대형 증권사, 리테일 자산관리 중심",
+      "note": "",
+      "order": 600,
+      "active": true
+    },
+    {
+      "name": "SK증권",
+      "code": "001510",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "중소형 증권사, 채권·IB 중심",
+      "note": "",
+      "order": 610,
+      "active": true
+    },
+    {
+      "name": "유진투자증권",
+      "code": "001200",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "중소형 증권사, 채권·리테일",
+      "note": "",
+      "order": 620,
+      "active": true
+    },
+    {
+      "name": "한화투자증권",
+      "code": "003530",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "중소형 증권사, 위탁매매·자기매매",
+      "note": "",
+      "order": 630,
+      "active": true
+    },
+    {
+      "name": "유안타증권",
+      "code": "003470",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "중소형 증권사, 리테일·해외주식",
+      "note": "",
+      "order": 640,
+      "active": true
+    },
+    {
+      "name": "교보증권",
+      "code": "030610",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "중소형 증권사, 채권·IB 중심",
+      "note": "",
+      "order": 650,
+      "active": true
+    },
+    {
+      "name": "신영증권",
+      "code": "001720",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "중소형 증권사, 자산관리·자기매매",
+      "note": "",
+      "order": 660,
+      "active": true
+    },
+    {
+      "name": "부국증권",
+      "code": "001270",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "증권",
+      "desc": "소형 증권사, 채권 운용 중심",
+      "note": "",
+      "order": 670,
+      "active": true
+    },
+    {
+      "name": "한국금융지주",
+      "code": "071050",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "금융지주",
+      "desc": "한국투자증권 지주사, 증권·자산운용",
+      "note": "",
+      "order": 680,
+      "active": true
+    },
+    {
+      "name": "하나금융지주",
+      "code": "086790",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "금융지주",
+      "desc": "은행 중심 금융지주(하나은행)",
+      "note": "",
+      "order": 690,
+      "active": true
+    },
+    {
+      "name": "우리금융지주",
+      "code": "316140",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "금융지주",
+      "desc": "은행 중심 금융지주(우리은행)",
+      "note": "",
+      "order": 700,
+      "active": true
+    },
+    {
+      "name": "메리츠금융지주",
+      "code": "138040",
+      "market": "KS",
+      "themes": [
+        "금융"
+      ],
+      "role": "금융지주",
+      "desc": "증권·화재 통합 금융지주",
+      "note": "",
+      "order": 710,
       "active": true
     }
   ]
