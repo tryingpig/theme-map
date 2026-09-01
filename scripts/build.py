@@ -408,11 +408,29 @@ def main(argv: list) -> int:
     if market_as_of < prev_series.get("as_of", ""):
         print(f"  [WARN] 시장 지수 기준일 {market_as_of} < 저장된 {prev_series['as_of']} "
               f"— 시장 값은 저장분을 쓰고 기준일도 유지한다", file=sys.stderr)
+    # 계열 색 자리(slot)는 테마마다 **고정**이다. 이름 순서로 정하면 테마를 하나 끼워 넣을
+    # 때마다 뒤쪽 색이 전부 한 칸씩 밀린다 — 어제 파란 선이던 반도체가 오늘 주황이 되면
+    # 그 화면을 기억하고 온 사람에게는 다른 차트다. 한 번 준 자리는 계속 들고 가고,
+    # 새 테마만 빈 자리 중 가장 앞을 받는다(날짜 축을 적립하는 것과 같은 원칙).
+    prev_slots = {t["id"]: t["slot"] for t in (prev_series.get("themes") or [])
+                  if t.get("slot") is not None}
+    slots = {sm["id"]: prev_slots[sm["id"]] for sm in summaries if sm["id"] in prev_slots}
+    taken = set(slots.values())
+    for sm in summaries:
+        if sm["id"] in slots:
+            continue
+        k = 0
+        while k in taken:
+            k += 1
+        slots[sm["id"]] = k
+        taken.add(k)
+
     theme_lines = []
     for sm in summaries:
         values = series_on_axis(kept.get(sm["id"]), axis_dates)
         if values:
-            theme_lines.append({"id": sm["id"], "name": sm["name"], "values": values})
+            theme_lines.append({"id": sm["id"], "name": sm["name"],
+                                "slot": slots[sm["id"]], "values": values})
     series_path.write_text(json.dumps({
         "updated_at": now.strftime("%Y-%m-%d %H:%M"),
         "as_of": max(market_as_of, prev_series.get("as_of", "")),

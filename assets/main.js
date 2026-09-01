@@ -2,10 +2,11 @@
    data/index.json(요약) + data/series.json(일별 시계열)만 읽는다.
    테마가 늘어도 이 파일은 그대로다. */
 
-/* 계열 색은 **테마 순서로 고정**한다(index.json의 순서 = 노션 정렬순서).
-   순위나 화면에 몇 개가 켜져 있느냐로 색이 바뀌면 어제 본 선과 오늘 본 선이 달라진다.
-   8색은 dataviz 검증 팔레트(라이트/다크 모두 통과). 실제 색값은 style.css의 --s1~--s8. */
-const SLOTS = 8;
+/* 계열 색은 **테마마다 고정**이다. 자리는 build.py가 series.json에 적어 두고(slot),
+   한 번 준 자리는 계속 간다 — 이름 순서로 정하면 테마를 하나 끼워 넣을 때마다 뒤쪽 색이
+   전부 밀려서, 어제 파란 선이던 반도체가 오늘 주황이 된다.
+   10색은 dataviz 검증 팔레트(라이트/다크 모두 통과). 실제 색값은 style.css의 --s1~--s10. */
+const SLOTS = 10;
 const MARKET_STYLE = {
   KOSPI: { color: "var(--mkt-1)", dash: "", kind: "market" },
   KOSDAQ: { color: "var(--mkt-2)", dash: "5 4", kind: "market" },
@@ -52,10 +53,13 @@ function allSeries() {
   const markets = s.markets.map((m) => ({
     id: m.id, name: m.name, values: m.values, ...MARKET_STYLE[m.id],
   }));
-  const themes = s.themes.map((t, i) => ({
-    id: t.id, name: t.name, values: t.values,
-    color: `var(--s${(i % SLOTS) + 1})`, slot: i % SLOTS, kind: "theme",
-  }));
+  const themes = s.themes.map((t, i) => {
+    const slot = (t.slot ?? i) % SLOTS;      // slot이 없는 옛 데이터는 순서로 물러선다
+    return {
+      id: t.id, name: t.name, values: t.values,
+      color: `var(--s${slot + 1})`, slot, kind: "theme",
+    };
+  });
   return { markets, themes };
 }
 
