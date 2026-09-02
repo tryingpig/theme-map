@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02 20:02",
+  "updated_at": "2026-09-02 22:04",
   "as_of": "2026-09-02",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -194,6 +194,25 @@
         "cross_date": "2026-08-20",
         "days": 9,
         "excess_since": -3.78
+      }
+    },
+    {
+      "id": "친환경",
+      "name": "친환경",
+      "count": 9,
+      "as_of": "2026-09-02",
+      "r1d": -5.9,
+      "r5d": -6.27,
+      "r1m": 26.83,
+      "r1y": 116.24,
+      "from_52w_high": -39.24,
+      "from_all_high": null,
+      "rs": {
+        "state": "below",
+        "window": 20,
+        "cross_date": "2026-09-02",
+        "days": 0,
+        "excess_since": 0.0
       }
     },
     {
