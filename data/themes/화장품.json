@@ -4,7 +4,7 @@
     "name": "화장품"
   },
   "as_of": "2026-09-02",
-  "updated_at": "2026-09-02 22:04",
+  "updated_at": "2026-09-02 22:15",
   "period_mode": "calendar",
   "index": {
     "as_of": "2026-09-02",
@@ -1109,7 +1109,7 @@
           "desc": "달바 스킨케어, 해외 직판 비중 높음",
           "note": "",
           "order": 105,
-          "market_cap": 2509151141888,
+          "market_cap": null,
           "close": 202000.0,
           "as_of": "2026-09-02",
           "r1d": -2.65,
