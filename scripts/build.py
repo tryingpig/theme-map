@@ -47,6 +47,11 @@ CAP_THRESHOLD = 5000e8      # 시총 5,000억 — 화면의 '시총 5천억 이�
 _history_cache = {}
 
 
+def _cell(v, width):
+    """로그용 칸 맞춤. 값이 없으면(신규 상장의 1년 수익률 등) '-'로 채운다."""
+    return f"{'-' if v is None else v:>{width}}"
+
+
 def symbol_of(stock: dict) -> str:
     return f"{stock['code']}.{stock['market']}"
 
@@ -102,7 +107,7 @@ def collect_markets():
         m = core.compute_metrics(df["Close"], df.get("High"))
         rows.append({"id": mid, "name": name, "symbol": symbol, **m})
         closes[mid] = close
-        print(f"    [OK] {name:6s} {m['close']:>10,.2f}  1일 {m['r1d']:>7}  1년 {m['r1y']:>8}")
+        print(f"    [OK] {name:6s} {m['close']:>10,.2f}  1일 {_cell(m['r1d'], 7)}  1년 {_cell(m['r1y'], 8)}")
     return rows, closes
 
 
@@ -207,8 +212,9 @@ def build_theme(theme: str, stocks: list, axis_dates: list, prev: dict, rebuild:
             "order": st.get("order"), "market_cap": core.fetch_market_cap(sym), **m,
         })
         closes.append(df["Close"].dropna())
-        print(f"    [OK] {st['name']:10s} {m['close']:>10,.0f}  1일 {m['r1d']:>7}  "
-              f"1년 {m['r1y']:>8}  52주고점대비 {m['from_52w_high']:>7}")
+        # 신규 상장이면 1년 수익률이 None — 로그 한 줄 때문에 테마 전체가 실패하면 안 된다
+        print(f"    [OK] {st['name']:10s} {m['close']:>10,.0f}  1일 {_cell(m['r1d'], 7)}  "
+              f"1년 {_cell(m['r1y'], 8)}  52주고점대비 {_cell(m['from_52w_high'], 7)}")
 
     if not rows:
         raise RuntimeError(f"{theme}: 수집 성공 종목이 없음")

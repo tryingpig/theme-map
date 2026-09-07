@@ -1779,7 +1779,8 @@
       "code": "437730",
       "market": "KQ",
       "themes": [
-        "로봇"
+        "로봇",
+        "방산"
       ],
       "role": "구동부품",
       "desc": "모터·제어기·감속기 일체 모션컨트롤 시스템",
@@ -1902,6 +1903,331 @@
       "desc": "자동차 부품, 로봇 구동 액추에이터·센서",
       "note": "",
       "order": 920,
+      "active": true
+    },
+    {
+      "name": "한화에어로스페이스",
+      "code": "012450",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "체계종합",
+      "desc": "항공엔진·유도무기·K9 자주포 등 지상장비",
+      "note": "",
+      "order": 1000,
+      "active": true
+    },
+    {
+      "name": "LIG디펜스앤에어로스페이스",
+      "code": "079550",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "체계종합",
+      "desc": "유도무기(천궁·신궁)·감시정찰, 구 LIG넥스원",
+      "note": "",
+      "order": 1010,
+      "active": true
+    },
+    {
+      "name": "현대로템",
+      "code": "064350",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "체계종합",
+      "desc": "K2 전차 등 지상체계·철도차량",
+      "note": "",
+      "order": 1020,
+      "active": true
+    },
+    {
+      "name": "한국항공우주",
+      "code": "047810",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "체계종합",
+      "desc": "KF-21·FA-50 항공기 체계, 위성",
+      "note": "",
+      "order": 1030,
+      "active": true
+    },
+    {
+      "name": "한화시스템",
+      "code": "272210",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "센서·전자",
+      "desc": "레이더·전자전·지휘통제, 위성통신",
+      "note": "",
+      "order": 1040,
+      "active": true
+    },
+    {
+      "name": "아이쓰리시스템",
+      "code": "214430",
+      "market": "KQ",
+      "themes": [
+        "방산"
+      ],
+      "role": "센서·전자",
+      "desc": "적외선 영상센서, 유도무기·감시장비용",
+      "note": "",
+      "order": 1050,
+      "active": true
+    },
+    {
+      "name": "STX엔진",
+      "code": "077970",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "엔진·구동",
+      "desc": "전차·장갑차·함정용 디젤엔진",
+      "note": "",
+      "order": 1060,
+      "active": true
+    },
+    {
+      "name": "SNT다이내믹스",
+      "code": "003570",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "엔진·구동",
+      "desc": "화포·변속기 등 지상장비 구동부",
+      "note": "",
+      "order": 1070,
+      "active": true
+    },
+    {
+      "name": "엠앤씨솔루션",
+      "code": "484870",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "엔진·구동",
+      "desc": "유도무기·전차 구동장치(액추에이터)",
+      "note": "",
+      "order": 1080,
+      "active": true
+    },
+    {
+      "name": "풍산",
+      "code": "103140",
+      "market": "KS",
+      "themes": [
+        "방산"
+      ],
+      "role": "탄약·소재",
+      "desc": "탄약·신동(구리 소재)",
+      "note": "",
+      "order": 1090,
+      "active": true
+    },
+    {
+      "name": "삼성바이오로직스",
+      "code": "207940",
+      "market": "KS",
+      "themes": [
+        "바이오"
+      ],
+      "role": "CDMO·시밀러",
+      "desc": "항체의약품 CDMO 세계 최대 생산능력",
+      "note": "",
+      "order": 1100,
+      "active": true
+    },
+    {
+      "name": "셀트리온",
+      "code": "068270",
+      "market": "KS",
+      "themes": [
+        "바이오"
+      ],
+      "role": "CDMO·시밀러",
+      "desc": "바이오시밀러(램시마·유플라이마) 개발·판매",
+      "note": "",
+      "order": 1110,
+      "active": true
+    },
+    {
+      "name": "삼성에피스홀딩스",
+      "code": "0126Z0",
+      "market": "KS",
+      "themes": [
+        "바이오"
+      ],
+      "role": "CDMO·시밀러",
+      "desc": "삼성바이오에피스 지주(인적분할 신설), 시밀러",
+      "note": "",
+      "order": 1120,
+      "active": true
+    },
+    {
+      "name": "삼천당제약",
+      "code": "000250",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "CDMO·시밀러",
+      "desc": "아일리아 시밀러·안과 제제, 경구용 GLP-1",
+      "note": "",
+      "order": 1130,
+      "active": true
+    },
+    {
+      "name": "알테오젠",
+      "code": "196170",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "항체·ADC",
+      "desc": "피하주사 제형변경 플랫폼(ALT-B4) 기술수출",
+      "note": "",
+      "order": 1140,
+      "active": true
+    },
+    {
+      "name": "리가켐바이오",
+      "code": "141080",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "항체·ADC",
+      "desc": "ADC 플랫폼·기술수출",
+      "note": "",
+      "order": 1150,
+      "active": true
+    },
+    {
+      "name": "에이비엘바이오",
+      "code": "298380",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "항체·ADC",
+      "desc": "이중항체·BBB 셔틀 플랫폼",
+      "note": "",
+      "order": 1160,
+      "active": true
+    },
+    {
+      "name": "오름테라퓨틱",
+      "code": "475830",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "항체·ADC",
+      "desc": "분해제-항체 접합(DAC) 신약",
+      "note": "",
+      "order": 1170,
+      "active": true
+    },
+    {
+      "name": "펩트론",
+      "code": "087010",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "약물전달",
+      "desc": "약효지속성 주사제 플랫폼(스마트데포)",
+      "note": "",
+      "order": 1180,
+      "active": true
+    },
+    {
+      "name": "인벤티지랩",
+      "code": "389470",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "약물전달",
+      "desc": "장기지속형 주사제 DDS 플랫폼",
+      "note": "",
+      "order": 1190,
+      "active": true
+    },
+    {
+      "name": "디앤디파마텍",
+      "code": "347850",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "약물전달",
+      "desc": "경구용 펩타이드(GLP-1) 플랫폼",
+      "note": "",
+      "order": 1200,
+      "active": true
+    },
+    {
+      "name": "보로노이",
+      "code": "310210",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "신약개발",
+      "desc": "정밀표적 저분자 항암제(EGFR 등)",
+      "note": "",
+      "order": 1210,
+      "active": true
+    },
+    {
+      "name": "올릭스",
+      "code": "226950",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "신약개발",
+      "desc": "RNAi(siRNA) 치료제 플랫폼",
+      "note": "",
+      "order": 1220,
+      "active": true
+    },
+    {
+      "name": "코오롱티슈진",
+      "code": "950160",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "세포·유전자",
+      "desc": "골관절염 세포유전자치료제(TG-C) 미국 3상",
+      "note": "",
+      "order": 1230,
+      "active": true
+    },
+    {
+      "name": "로킷헬스케어",
+      "code": "376900",
+      "market": "KQ",
+      "themes": [
+        "바이오"
+      ],
+      "role": "세포·유전자",
+      "desc": "AI 재생의료·오가노이드 바이오프린팅",
+      "note": "",
+      "order": 1240,
       "active": true
     }
   ]
