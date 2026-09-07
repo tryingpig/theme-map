@@ -5,8 +5,8 @@
 /* 계열 색은 **테마마다 고정**이다. 자리는 build.py가 series.json에 적어 두고(slot),
    한 번 준 자리는 계속 간다 — 이름 순서로 정하면 테마를 하나 끼워 넣을 때마다 뒤쪽 색이
    전부 밀려서, 어제 파란 선이던 반도체가 오늘 주황이 된다.
-   10색은 dataviz 검증 팔레트(라이트/다크 모두 통과). 실제 색값은 style.css의 --s1~--s10. */
-const SLOTS = 10;
+   11색은 dataviz 검증 팔레트(라이트/다크 모두 통과). 실제 색값은 style.css의 --s1~--s11. */
+const SLOTS = 11;
 const MARKET_STYLE = {
   KOSPI: { color: "var(--mkt-1)", dash: "", kind: "market" },
   KOSDAQ: { color: "var(--mkt-2)", dash: "5 4", kind: "market" },

@@ -1734,6 +1734,175 @@
       "note": "",
       "order": 770,
       "active": true
+    },
+    {
+      "name": "로보티즈",
+      "code": "108490",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "구동부품",
+      "desc": "로봇 전용 액추에이터(다이나믹셀)·자율주행 배송로봇",
+      "note": "",
+      "order": 800,
+      "active": true
+    },
+    {
+      "name": "에스피지",
+      "code": "058610",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "구동부품",
+      "desc": "로봇용 정밀 감속기(SH·SR)·산업용 모터",
+      "note": "",
+      "order": 810,
+      "active": true
+    },
+    {
+      "name": "하이젠알앤엠",
+      "code": "160190",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "구동부품",
+      "desc": "로봇 관절용 서보모터·액추에이터",
+      "note": "",
+      "order": 820,
+      "active": true
+    },
+    {
+      "name": "삼현",
+      "code": "437730",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "구동부품",
+      "desc": "모터·제어기·감속기 일체 모션컨트롤 시스템",
+      "note": "",
+      "order": 830,
+      "active": true
+    },
+    {
+      "name": "뉴로메카",
+      "code": "348340",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "로봇 완제품",
+      "desc": "협동로봇(인디) 및 로봇 자동화 솔루션",
+      "note": "",
+      "order": 840,
+      "active": true
+    },
+    {
+      "name": "휴림로봇",
+      "code": "090710",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "로봇 완제품",
+      "desc": "산업용 매니퓰레이터·서비스 로봇",
+      "note": "",
+      "order": 850,
+      "active": true
+    },
+    {
+      "name": "고영",
+      "code": "098460",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "검사장비",
+      "desc": "3D 납도포·부품실장 검사장비, 뇌수술 로봇",
+      "note": "",
+      "order": 860,
+      "active": true
+    },
+    {
+      "name": "클로봇",
+      "code": "466100",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "SW·보안",
+      "desc": "로봇 자율주행 SW·이기종 로봇 관제 플랫폼",
+      "note": "",
+      "order": 870,
+      "active": true
+    },
+    {
+      "name": "아이씨티케이",
+      "code": "456010",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "SW·보안",
+      "desc": "PUF 기반 보안칩, 로봇·IoT 인증",
+      "note": "",
+      "order": 880,
+      "active": true
+    },
+    {
+      "name": "케이씨에스",
+      "code": "115500",
+      "market": "KQ",
+      "themes": [
+        "로봇"
+      ],
+      "role": "SW·보안",
+      "desc": "암호칩·전산 SI, 로봇 보안 모듈",
+      "note": "",
+      "order": 890,
+      "active": true
+    },
+    {
+      "name": "LG전자",
+      "code": "066570",
+      "market": "KS",
+      "themes": [
+        "로봇"
+      ],
+      "role": "대기업·플랫폼",
+      "desc": "가전·전장, 피지컬 AI 로봇 사업 확대",
+      "note": "",
+      "order": 900,
+      "active": true
+    },
+    {
+      "name": "현대차",
+      "code": "005380",
+      "market": "KS",
+      "themes": [
+        "로봇"
+      ],
+      "role": "대기업·플랫폼",
+      "desc": "완성차, 보스턴다이내믹스 모회사",
+      "note": "",
+      "order": 910,
+      "active": true
+    },
+    {
+      "name": "현대모비스",
+      "code": "012330",
+      "market": "KS",
+      "themes": [
+        "로봇"
+      ],
+      "role": "대기업·플랫폼",
+      "desc": "자동차 부품, 로봇 구동 액추에이터·센서",
+      "note": "",
+      "order": 920,
+      "active": true
     }
   ]
 }

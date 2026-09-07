@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-07 18:01",
+  "updated_at": "2026-09-07 23:34",
   "as_of": "2026-09-07",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -80,6 +80,25 @@
         "cross_date": "2026-09-07",
         "days": 0,
         "excess_since": 0.0
+      }
+    },
+    {
+      "id": "로봇",
+      "name": "로봇",
+      "count": 13,
+      "as_of": "2026-09-07",
+      "r1d": 2.46,
+      "r5d": 0.9,
+      "r1m": 0.55,
+      "r1y": 110.96,
+      "from_52w_high": -35.83,
+      "from_all_high": null,
+      "rs": {
+        "state": "below",
+        "window": 20,
+        "cross_date": "2026-08-21",
+        "days": 11,
+        "excess_since": -1.25
       }
     },
     {
