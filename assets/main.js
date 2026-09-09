@@ -180,8 +180,9 @@ function renderTable(rows) {
     + `<th title="상대강도(테마÷코스피)가 20일 이동평균을 넘은 날부터">우위 전환</th><th>구성</th>`;
   $("rankBody").innerHTML = rows.map((r) => `
     <tr class="${r.kind === "market" ? "mkt" : "theme"}" ${r.kind === "theme" ? `data-t="${r.id}"` : `data-m="${r.id}"`}>
-      <td class="name"><i class="dot" style="background:${r.color}"></i>${r.name}
-        ${r.kind === "market" ? '<span class="tag">시장</span>' : '<span class="go">→</span>'}</td>
+      <td class="name">${r.kind === "market"
+        ? `<i class="dot" style="background:${r.color}"></i>${r.name}<span class="tag">시장</span>`
+        : `<a class="go-link" href="theme.html?theme=${encodeURIComponent(r.id)}"><i class="dot" style="background:${r.color}"></i>${r.name}<span class="go">→</span></a>`}</td>
       ${cols.map((c) => (c.key === "excess" && r.kind === "market" && r.id === "KOSPI"
         ? '<td class="num muted">기준</td>'
         : `<td class="num heat ${heatClass(r[c.key], sc[c.key])}">${fmtPct(r[c.key])}</td>`)).join("")}
@@ -189,16 +190,22 @@ function renderTable(rows) {
       <td class="num sub">${r.count ? `${r.count}종목` : "-"}</td>
     </tr>`).join("");
 
+  // 이름은 진짜 링크(a)다 — 새 탭·키보드·모바일에서 확실히 눌린다. 행의 나머지 영역은 onclick으로 받되,
+  // 링크 위를 누른 클릭은 브라우저에 맡긴다(두 번 이동 방지).
   $("rankBody").querySelectorAll("tr[data-t]").forEach((tr) => {
-    tr.onclick = () => { location.href = `theme.html?theme=${encodeURIComponent(tr.dataset.t)}`; };
+    tr.onclick = (e) => {
+      if (e.target.closest("a")) return;
+      location.href = `theme.html?theme=${encodeURIComponent(tr.dataset.t)}`;
+    };
   });
 
   // 표에서 행을 훑을 때도 차트가 같이 반응한다 — 순위와 선을 눈으로 잇는 게 이 표의 일이다.
+  // 마우스에서만. 터치 기기는 hover 핸들러가 DOM을 바꾸면 첫 탭이 hover로만 소비돼 클릭이 안 먹는다(iOS).
   $("rankBody").querySelectorAll("tr").forEach((tr) => {
     const id = tr.dataset.t || (tr.classList.contains("mkt") ? tr.dataset.m : null);
     if (!id) return;
-    tr.onpointerenter = () => Chart.focus($("chart"), id);
-    tr.onpointerleave = () => Chart.focus($("chart"), null);
+    tr.onpointerenter = (e) => { if (e.pointerType === "mouse") Chart.focus($("chart"), id); };
+    tr.onpointerleave = (e) => { if (e.pointerType === "mouse") Chart.focus($("chart"), null); };
   });
 }
 

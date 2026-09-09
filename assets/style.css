@@ -395,6 +395,8 @@ td.drop .v { position: relative; }
 #rank thead th:hover { color: var(--muted); }
 #rank tbody tr.theme { cursor: pointer; }
 #rank tbody tr.theme:hover td.name { background: var(--surface); color: var(--accent); }
+#rank td.name a.go-link { color: inherit; text-decoration: none; display: inline-block; padding: 9px 0; margin: -9px 0; }
+#rank td.name a.go-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 #rank td.name { font-weight: 600; }
 #rank td.name .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
 #rank td.name .tag {
