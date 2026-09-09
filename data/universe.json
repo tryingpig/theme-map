@@ -2229,6 +2229,84 @@
       "note": "",
       "order": 1240,
       "active": true
+    },
+    {
+      "name": "에스엠",
+      "code": "041510",
+      "market": "KQ",
+      "themes": [
+        "엔터테인먼트"
+      ],
+      "role": "기획사",
+      "desc": "SM 아티스트(NCT·에스파·라이즈) 음반·공연·IP",
+      "note": "",
+      "order": 1310,
+      "active": true
+    },
+    {
+      "name": "하이브",
+      "code": "352820",
+      "market": "KS",
+      "themes": [
+        "엔터테인먼트"
+      ],
+      "role": "기획사",
+      "desc": "BTS·세븐틴·뉴진스 등 멀티레이블, 위버스 플랫폼",
+      "note": "",
+      "order": 1320,
+      "active": true
+    },
+    {
+      "name": "와이지엔터테인먼트",
+      "code": "122870",
+      "market": "KQ",
+      "themes": [
+        "엔터테인먼트"
+      ],
+      "role": "기획사",
+      "desc": "블랙핑크·베이비몬스터·트레저 음반·공연·IP",
+      "note": "",
+      "order": 1330,
+      "active": true
+    },
+    {
+      "name": "JYP Ent.",
+      "code": "035900",
+      "market": "KQ",
+      "themes": [
+        "엔터테인먼트"
+      ],
+      "role": "기획사",
+      "desc": "스트레이키즈·트와이스·있지 등 음반·공연·IP",
+      "note": "",
+      "order": 1340,
+      "active": true
+    },
+    {
+      "name": "디어유",
+      "code": "376300",
+      "market": "KQ",
+      "themes": [
+        "엔터테인먼트"
+      ],
+      "role": "플랫폼·유통",
+      "desc": "아티스트 프라이빗 메시지 팬 플랫폼 '버블'",
+      "note": "",
+      "order": 1350,
+      "active": true
+    },
+    {
+      "name": "YG PLUS",
+      "code": "037270",
+      "market": "KS",
+      "themes": [
+        "엔터테인먼트"
+      ],
+      "role": "플랫폼·유통",
+      "desc": "음원·음반 유통, MD·굿즈, 매니지먼트(YG 계열)",
+      "note": "",
+      "order": 1360,
+      "active": true
     }
   ]
 }

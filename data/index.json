@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-09 18:02",
+  "updated_at": "2026-09-10 00:01",
   "as_of": "2026-09-09",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -159,6 +159,25 @@
       }
     },
     {
+      "id": "엔터테인먼트",
+      "name": "엔터테인먼트",
+      "count": 6,
+      "as_of": "2026-09-09",
+      "r1d": -2.57,
+      "r5d": 2.26,
+      "r1m": -5.94,
+      "r1y": -52.22,
+      "from_52w_high": -52.6,
+      "from_all_high": null,
+      "rs": {
+        "state": "below",
+        "window": 20,
+        "cross_date": "2026-08-13",
+        "days": 18,
+        "excess_since": -4.8
+      }
+    },
+    {
       "id": "원자력",
       "name": "원자력",
       "count": 16,
@@ -293,5 +312,13 @@
     }
   ],
   "failed_themes": [],
-  "stale_themes": []
+  "stale_themes": [
+    "엔터테인먼트",
+    "원자력",
+    "음식료",
+    "이차전지",
+    "전력기기",
+    "조선",
+    "화장품"
+  ]
 }
