@@ -93,7 +93,7 @@
 | `data/themes/{테마}.json` | 테마 하나의 계층·지표 + 그 테마 지수의 일별 시계열 |
 | `data/series.json` | 코스피·코스닥·전체 테마의 **적립된** 일별 시계열 (메인 차트용) |
 | `index.html` / `assets/main.js` | 메인 — 시장 대비 차트 + 순위표 |
-| `theme.html` / `assets/app.js` | 상세 — 테마 탭 + 히트맵 표 + 그 테마의 시장 대비 차트 |
+| `theme.html` / `assets/app.js` | 상세 — 테마 탭 + 종목 순위표(기준 열 막대·코스피 기준선, 역할별 묶기 스위치) + 그 테마의 시장 대비 차트 |
 | `assets/chart.js` | 공용 라인 차트 (SVG 직접 그림, 외부 라이브러리 없음) |
 | `.github/workflows/update.yml` | 평일 18:30 KST 갱신 |
 
