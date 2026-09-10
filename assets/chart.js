@@ -172,13 +172,15 @@ const Chart = (() => {
     const pad = (hi - lo) * 0.08 || 1;
     lo -= pad; hi += pad;
 
-    const plotW = width - PAD.left - PAD.right;
+    // 오른쪽 여백은 가장 긴 이름표에 맞춘다 — 고정 72px은 '엔터테인먼트'(6자)에서 잘렸다.
+    const padR = Math.max(PAD.right, 9 + 4 + Math.max(0, ...lines.map((s) => s.name.length)) * 12);
+    const plotW = width - PAD.left - padR;
     const plotH = height - PAD.top - PAD.bottom;
     const x = (i) => PAD.left + (plotW * i) / (n - 1);
     const y = (v) => PAD.top + plotH * (1 - (v - lo) / (hi - lo));
 
     const grid = niceTicks(lo, hi).map((t) => `
-      <line class="grid${Math.abs(t) < 1e-9 ? " zero" : ""}" x1="${PAD.left}" x2="${width - PAD.right}"
+      <line class="grid${Math.abs(t) < 1e-9 ? " zero" : ""}" x1="${PAD.left}" x2="${width - padR}"
             y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/>
       <text class="ytick" x="${PAD.left - 8}" y="${(y(t) + 4).toFixed(1)}">${fmtPct(t, 0)}</text>`).join("");
 
@@ -208,7 +210,7 @@ const Chart = (() => {
 
     /* 선 끝 이름표 — 라이트 모드에는 대비가 낮은 색(노랑·아쿠아·마젠타)이 섞여 있어
        색만으로 계열을 구분하게 두지 않는다. 이름표와 아래 표가 그 역할을 한다. */
-    const labelX = width - PAD.right + 9;
+    const labelX = width - padR + 9;
     const ends = spread(lines.map((s) => {
       let li = -1;
       for (let i = s.pct.length - 1; i >= 0; i--) if (s.pct[i] !== null) { li = i; break; }
