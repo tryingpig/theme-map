@@ -12,7 +12,12 @@ const COLS = [
 ];
 
 const $ = (id) => document.getElementById(id);
-const state = { index: null, theme: null, data: null, sort: null, dir: -1, capOnly: false };
+const state = { index: null, theme: null, data: null, sort: "r1d", dir: -1, capOnly: false, byRole: false };
+
+/* 막대가 붙는 기준 열 — 정렬한 수익률 열. 아직 정렬 전(역할 순)이면 1일이다.
+   메인 순위표처럼 색 면적은 이 한 열뿐이고 나머지는 글자색만 쓴다. */
+const RET_KEYS = ["r1d", "r5d", "r1m", "r1y"];
+const barKey = () => (RET_KEYS.includes(state.sort) ? state.sort : "r1d");
 
 /* ── 값 표기 ───────────────────────────────────────────── */
 const fmtPct = (v, d = 2) => (v === null || v === undefined ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(d)}`);
@@ -45,23 +50,24 @@ function avgMetrics(rows) {
   return out;
 }
 
-/* ── 히트맵 색 단계 ─────────────────────────────────────
-   컬럼마다 스케일이 따로다. 1일(±15%)과 1년(±400%)을 한 스케일로 칠하면
-   1일 컬럼이 통째로 무채색이 된다. 이상치 한 종목(대우건설 +396%)이 나머지를
-   납작하게 만들지 않도록 saturation point는 최댓값이 아니라 |값| 80퍼센타일을 쓴다. */
-function columnScale(values) {
-  const abs = values.filter((v) => v !== null && v !== undefined).map(Math.abs).sort((a, b) => a - b);
-  if (!abs.length) return 1;
-  const p80 = abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.8))];
-  return Math.max(p80, 0.5);
+/* 값 글자 — 색은 부호만, ±0.5% 미만은 회색으로 물러난다. 큰 움직임만 튀어 보이게. */
+function vtxt(v) {
+  if (v === null || v === undefined) return '<span class="v flat">-</span>';
+  const sign = Math.abs(v) < 0.5 ? "flat" : v > 0 ? "up" : "dn";
+  return `<span class="v ${sign}">${fmtPct(v)}</span>`;
 }
 
-function heatClass(v, scale) {
+/* 다이버징 막대. 열 전체가 한 눈금이라 막대 길이 비교가 곧 순위 비교다. */
+function barHtml(v, vals) {
   if (v === null || v === undefined) return "";
-  const r = Math.abs(v) / scale;
-  if (r < 0.08) return "zero";
-  const step = r < 0.3 ? 1 : r < 0.6 ? 2 : r < 1 ? 3 : 4;
-  return `${v > 0 ? "up" : "dn"}${step}${step === 4 ? " s4" : ""}`;
+  const nums = vals.filter((x) => x !== null && x !== undefined);
+  const lo = Math.min(0, ...nums), hi = Math.max(0, ...nums);
+  const span = hi - lo || 1;
+  const z = (0 - lo) / span * 100;
+  const w = Math.abs(v) / span * 100;
+  const left = v >= 0 ? z : z - w;
+  return `<span class="bar" aria-hidden="true"><span class="zero" style="left:${z.toFixed(2)}%"></span>
+    <span class="fill ${v >= 0 ? "up" : "dn"}" style="left:${left.toFixed(2)}%;width:${w.toFixed(2)}%"></span></span>`;
 }
 
 /* ── 렌더 ──────────────────────────────────────────────── */
@@ -112,6 +118,7 @@ function renderHead() {
     th.onclick = () => {
       if (state.sort === c.key) state.dir = -state.dir;
       else { state.sort = c.key; state.dir = c.key === "name" ? 1 : -1; }
+      setByRole(false);
       renderHead();
       renderBody();
     };
@@ -125,14 +132,32 @@ function allStocks() {
 
 function scales() {
   const rows = allStocks();
-  const s = {};
-  COLS.forEach((c) => { s[c.key] = columnScale(rows.map((r) => r[c.key])); });
+  const s = { vals: {} };
+  COLS.forEach((c) => { s.vals[c.key] = rows.map((r) => r[c.key]); });
   return s;
+}
+
+/* 코스피·코스닥 기준선 행 — 수익률로 정렬했을 때 그 자리에 끼운다.
+   선 위가 그 기간 시장을 이긴 종목. 역할별(정렬 전) 보기에서는 순서가 없어 넣지 않는다. */
+function marketRow(m, key) {
+  const tr = document.createElement("tr");
+  const base = m.id === "KOSPI";
+  tr.className = `base${base ? "" : " kq"}`;
+  let html = `<td class="name">${m.name}${base ? '<span class="tag">기준선</span>' : ""}</td><td></td>`;
+  COLS.forEach((c) => {
+    const v = m[c.key];
+    if (c.kind === "drop") html += `<td class="num">${fmtDrop(v)}</td>`;
+    else if (c.key === key) html += `<td class="num primary">${vtxt(v)}${base ? '<span class="base-hint">이 선 위 = 시장을 이김</span>' : ""}</td>`;
+    else html += `<td class="num">${fmtPct(v)}</td>`;
+  });
+  tr.innerHTML = html;
+  return tr;
 }
 
 function stockRow(st, sc, showRole) {
   const tr = document.createElement("tr");
   tr.className = "stock";
+  const bk = barKey();
   const flag = st.note ? ` <span class="flag" title="${st.note}">⚑</span>` : "";
   const chip = showRole ? ` <span class="role-chip">${st.role}</span>` : "";
   let html = `<td class="name"><span class="nm">${st.name}</span><span class="cd">${st.code}</span>${chip}${flag}</td>`;
@@ -145,8 +170,10 @@ function stockRow(st, sc, showRole) {
       const pos = v === null || v === undefined ? 0 : Math.max(0, Math.min(100, 100 + v));
       html += `<td class="num drop"><span class="v">${fmtDrop(v)}</span>
                <span class="bar"><i style="width:${pos}%"></i></span></td>`;
+    } else if (c.key === bk) {
+      html += `<td class="num barcell primary">${barHtml(v, sc.vals[c.key])}<span class="lbl">${vtxt(v)}</span></td>`;
     } else {
-      html += `<td class="num heat ${heatClass(v, sc[c.key])}">${fmtPct(v)}</td>`;
+      html += `<td class="num">${vtxt(v)}</td>`;
     }
   });
   tr.innerHTML = html;
@@ -162,7 +189,7 @@ function groupRow(g, members) {
   let html = `<td>${g.role}<span class="gcount">${summary.count}종목${solo ? "" : " · 평균"}</span></td><td></td>`;
   COLS.forEach((c) => {
     const v = summary[c.key];
-    html += `<td>${solo ? "" : (c.kind === "drop" ? fmtDrop(v) : fmtPct(v, 2))}</td>`;
+    html += `<td>${solo ? "" : (c.kind === "drop" ? fmtDrop(v) : vtxt(v))}</td>`;
   });
   tr.innerHTML = html;
   return tr;
@@ -183,29 +210,44 @@ function renderBody() {
     return;
   }
 
+  const k = state.sort;
   const rows = allStocks().slice().sort((a, b) => {
-    const k = state.sort;
     if (k === "name") return a.name.localeCompare(b.name, "ko") * state.dir;
     const av = a[k], bv = b[k];
     if (av === null || av === undefined) return 1;
     if (bv === null || bv === undefined) return -1;
     return (av - bv) * state.dir;
   });
-  rows.forEach((st) => tb.appendChild(stockRow(st, sc, true)));
+  // 수익률 정렬이면 코스피·코스닥을 기준선으로 끼운다 — 그 값보다 못한 첫 종목 앞에 선다.
+  const pending = RET_KEYS.includes(k)
+    ? (state.index.markets || []).filter((m) => m[k] !== null && m[k] !== undefined)
+    : [];
+  const before = (v) => (m) => (state.dir < 0 ? m[k] >= v : m[k] <= v);
+  rows.forEach((st) => {
+    const v = st[k];
+    if (v !== null && v !== undefined) {
+      pending.filter(before(v)).forEach((m) => {
+        tb.appendChild(marketRow(m, k)); pending.splice(pending.indexOf(m), 1);
+      });
+    }
+    tb.appendChild(stockRow(st, sc, true));
+  });
+  pending.forEach((m) => tb.appendChild(marketRow(m, k)));
+}
+
+/* 역할별 묶음 스위치 — 켜면 정렬이 풀리고 역할 순으로 돌아간다. 헤더로 정렬하면 꺼진다. */
+function setByRole(on) {
+  state.byRole = on;
+  const role = $("byRole");
+  if (role) role.checked = on;
+  try { localStorage.setItem("theme-map:byRole", on ? "1" : "0"); } catch (e) { /* noop */ }
 }
 
 function renderLegend() {
   // ⚑ 안내는 실제로 비고가 달린 종목이 있을 때만 — 비고는 노션에서 사람이 넣는 값이다.
   const hasNote = allStocks().some((s) => s.note);
   $("legend").innerHTML = `
-    <span>등락률</span>
-    <span class="ramp">
-      <i style="background:var(--dn-4)"></i><i style="background:var(--dn-3)"></i>
-      <i style="background:var(--dn-2)"></i><i style="background:var(--dn-1)"></i>
-      <i style="background:var(--up-1)"></i><i style="background:var(--up-2)"></i>
-      <i style="background:var(--up-3)"></i><i style="background:var(--up-4)"></i>
-    </span>
-    <span>하락 ← 0 → 상승 · 진하기는 컬럼별 상대 크기</span>
+    <span>막대는 <b>정렬한 수익률 열</b>(열 전체가 한 눈금) · 코스피 선 위가 그 기간 시장을 이긴 종목</span>
     <span>· 고점대비 막대는 <b>고점 대비 현재 위치</b>(길수록 고점 근처)</span>
     ${hasNote ? "<span>· ⚑ 는 비고가 달린 종목(마우스를 올리면 내용)</span>" : ""}`;
 }
@@ -361,7 +403,7 @@ function renderChart() {
 /* ── 로딩 ──────────────────────────────────────────────── */
 async function selectTheme(id) {
   state.theme = id;
-  state.sort = null;
+  state.sort = state.byRole ? null : "r1d"; state.dir = -1;
   try { localStorage.setItem("theme-map:last", id); } catch (e) { /* 사생활 보호 모드 */ }
   const url = new URL(location.href);
   url.searchParams.set("theme", id);
@@ -391,6 +433,16 @@ function renderCapNote() {
 }
 
 function initCapFilter() {
+  const role = $("byRole");
+  try { state.byRole = localStorage.getItem("theme-map:byRole") === "1"; } catch (e) { /* noop */ }
+  role.checked = state.byRole;
+  if (state.byRole) state.sort = null;
+  role.onchange = () => {
+    setByRole(role.checked);
+    state.sort = role.checked ? null : "r1d"; state.dir = -1;
+    renderHead(); renderBody();
+  };
+
   const box = $("capOnly");
   try { state.capOnly = localStorage.getItem("theme-map:capOnly") === "1"; } catch (e) { /* noop */ }
   box.checked = state.capOnly;
