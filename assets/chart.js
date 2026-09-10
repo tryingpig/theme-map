@@ -168,6 +168,9 @@ const Chart = (() => {
       };
     }).filter((s) => s.pct);
 
+    // 시점이 둘뿐이면(1일) 선은 전부 원점에서 뻗는 직선이라 읽을 게 없다 — 막대로 바꿔 그린다.
+    if (n === 2) { renderBars(host, { lines, width, mode, baseId, date: view[1] }); return; }
+
     const vals = lines.flatMap((s) => [...s.pct, ...(s.mapct || [])]).filter((v) => v !== null);
     if (!vals.length) { host.innerHTML = '<p class="chart-empty">표시할 계열이 없습니다.</p>'; return; }
     let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
@@ -244,6 +247,107 @@ const Chart = (() => {
     host.classList.remove("on-focus");   // 다시 그리면 강조는 풀린다(고정도 함께)
 
     attachHover(host, { lines, view, x, y, width, plotW, mode });
+  }
+
+  /* ── 하루 등락 막대 ──────────────────────────────────────
+
+     기간이 1일이면 각 계열은 값이 둘(전일·당일)뿐이다. 그걸 선으로 그리면 원점에서
+     뻗는 직선 열네 개가 부채꼴로 겹칠 뿐이라, 이 화면이 답하는 "누가 시장을 이겼나"를
+     읽을 수 없다. 값이 하나씩이면 그 형태는 **수익률순 가로 막대**다.
+     코스피·코스닥은 막대가 아니라 **세로 기준선**으로 세운다 — 막대가 선 오른쪽에 있으면
+     그 테마가 시장을 이긴 것이라, 선 차트에서 "코스피 선 위"를 읽던 것과 같은 방향이 된다. */
+  const BAR = { row: 24, thick: 14, top: 30, bottom: 26, right: 16, label: 58 };
+
+  function renderBars(host, cfg) {
+    const { lines, width, mode, baseId, date } = cfg;
+    const rows = lines.filter((s) => s.kind !== "market" && s.pct[1] !== null)
+      .map((s) => ({ ...s, v: s.pct[1] }))
+      .sort((a, b) => b.v - a.v);
+    // 코스피 대비 모드에서는 코스피가 곧 0%선이라 따로 세울 기준선이 없다.
+    const refs = lines.filter((s) => s.kind === "market" && s.pct[1] !== null
+                                     && !(mode === "rel" && s.id === baseId))
+      .map((s) => ({ ...s, v: s.pct[1] }));
+    if (!rows.length && !refs.length) {
+      host.innerHTML = '<p class="chart-empty">표시할 계열이 없습니다.</p>'; return;
+    }
+
+    const all = [...rows, ...refs].map((s) => s.v);
+    let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+    const span = (hi - lo) || 1;
+
+    const padL = 10 + Math.max(2, ...rows.map((s) => s.name.length)) * 12;
+    const plotW = Math.max(120, width - padL - BAR.right);
+    /* 값 글자는 막대 끝 바깥에 붙는다. 그 글자('-2.58%' ≈ 58px)가 들어갈 자리를
+       **픽셀로** 확보해야 좁은 화면에서 이름과 겹치지 않는다 — 비율로 비우면 폭이 줄수록 모자란다.
+       값이 있는 쪽만 비우고 반대쪽은 살짝만. */
+    const fLo = lo < 0 ? BAR.label / plotW : 0.03, fHi = hi > 0 ? BAR.label / plotW : 0.03;
+    const range = span / Math.max(0.2, 1 - fLo - fHi);
+    lo -= range * fLo; hi += range * fHi;
+
+    // 기준선 이름표가 서로 가까우면 둘째 줄로 내려가므로, 그만큼 위를 더 비운다.
+    const refXs = refs.map((m) => padL + (plotW * (m.v - lo)) / (hi - lo)).sort((a, b) => a - b);
+    const twoTier = refXs.some((v, i) => i > 0 && v - refXs[i - 1] < 100);
+    const top = BAR.top + (twoTier ? 13 : 0);
+    const height = top + Math.max(rows.length, 1) * BAR.row + BAR.bottom;
+    const x = (v) => padL + (plotW * (v - lo)) / (hi - lo);
+    const yc = (k) => top + BAR.row * k + BAR.row / 2;
+    const x0 = x(0);
+
+    const grid = niceTicks(lo, hi, width < 520 ? 4 : 6).map((t) => `
+      <line class="grid${Math.abs(t) < 1e-9 ? " zero" : ""}" x1="${x(t).toFixed(1)}" x2="${x(t).toFixed(1)}"
+            y1="${top}" y2="${height - BAR.bottom}"/>
+      <text class="xtick" x="${x(t).toFixed(1)}" y="${height - 8}">${fmtPct(t, 1)}</text>`).join("");
+
+    const bars = rows.map((s, k) => {
+      const xv = x(s.v), cy = yc(k);
+      const left = Math.min(x0, xv), w = Math.max(1, Math.abs(xv - x0));
+      const pos = s.v >= 0;
+      return `
+      <rect class="barhit" data-id="${esc(s.id)}" x="0" y="${(cy - BAR.row / 2).toFixed(1)}" width="${width}" height="${BAR.row}"/>
+      <text class="barname" data-id="${esc(s.id)}" x="${padL - 8}" y="${cy.toFixed(1)}">${esc(s.name)}</text>
+      <rect class="bar" data-id="${esc(s.id)}" style="fill:${s.color}" rx="2"
+            x="${left.toFixed(1)}" y="${(cy - BAR.thick / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${BAR.thick}"/>
+      <text class="barv ${pos ? "up" : "dn"}" data-id="${esc(s.id)}" x="${(pos ? xv + 6 : xv - 6).toFixed(1)}"
+            y="${cy.toFixed(1)}" text-anchor="${pos ? "start" : "end"}">${fmtPct(s.v, 2)}</text>`;
+    }).join("");
+
+    /* 기준선 이름표는 선 머리 위에 둔다. 두 선이 가까우면 둘째 이름표를 한 줄 내린다.
+       코스피 대비 모드에서는 0%선이 곧 코스피라 그 자리에 이름만 적는다. */
+    let lastX = -Infinity, tier = 0;
+    const refLines = refs.sort((a, b) => a.v - b.v).map((m) => {
+      const xv = x(m.v);
+      tier = xv - lastX < 100 ? 1 - tier : 0;
+      lastX = xv;
+      return `
+      <line class="refline" data-id="${esc(m.id)}" style="stroke:${m.color}" ${m.dash ? `stroke-dasharray="${m.dash}"` : ""}
+            x1="${xv.toFixed(1)}" x2="${xv.toFixed(1)}" y1="${top - 4}" y2="${height - BAR.bottom}"/>
+      <text class="reflabel" data-id="${esc(m.id)}" style="fill:${m.color}" x="${xv.toFixed(1)}"
+            y="${top - 10 - tier * 13}">${esc(m.name)} ${fmtPct(m.v, 2)}</text>`;
+    }).join("") + (mode === "rel"
+      ? `<text class="reflabel base" x="${x0.toFixed(1)}" y="${top - 10}">코스피 = 0%</text>` : "");
+
+    host.innerHTML = `
+      <svg class="chart bars" width="${width}" height="${height}" role="img"
+           aria-label="${esc(date)} 하루 수익률 막대 — 수익률순${mode === "rel" ? ", 코스피 대비" : ""}">
+        ${grid}${refLines}${bars}
+      </svg>`;
+    host.classList.remove("on-focus");
+
+    // 강조 — 막대 줄에 올리면 그 계열만 남기고, 누르면 고정. 범례·표에서도 같은 손잡이를 쓴다.
+    let pinned = null, hovered = null;
+    const paint = () => {
+      const id = pinned || hovered;
+      host.classList.toggle("on-focus", !!id);
+      host.querySelectorAll("[data-id]").forEach((el) => el.classList.toggle("on", el.dataset.id === id));
+    };
+    host.querySelectorAll(".barhit").forEach((hit) => {
+      hit.addEventListener("pointerenter", () => { hovered = hit.dataset.id; paint(); });
+      hit.addEventListener("pointerleave", () => { hovered = null; paint(); });
+      hit.addEventListener("pointerdown", () => {
+        pinned = pinned === hit.dataset.id ? null : hit.dataset.id; paint();
+      });
+    });
+    FOCUS.set(host, (id) => { hovered = id; paint(); });
   }
 
   /* 크로스헤어 + 툴팁 + 강조.

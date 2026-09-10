@@ -331,6 +331,23 @@ td.drop .v { position: relative; }
 /* 겹쳐서 밀려난 이름표를 제 선에 이어 주는 유도선 — 눈에 띄면 안 되니 아주 얇고 흐리게 */
 .lead { fill: none; stroke-width: 1; opacity: 0.4; }
 
+/* 하루 등락 막대(기간 1일) — 이름은 잉크색, 색은 막대가 진다. 값은 막대 끝 바깥. */
+.barhit { fill: transparent; cursor: default; }
+.barname { fill: var(--ink-2); font-size: 12.5px; font-weight: 600; text-anchor: end; dominant-baseline: middle; }
+.bar { transition: opacity .12s ease; }
+.barv { fill: var(--ink); font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; dominant-baseline: middle; }
+.barv.up { fill: var(--up-4); }
+.barv.dn { fill: var(--dn-4); }
+.refline { stroke-width: 1.5; }
+.reflabel { font-size: 11px; font-weight: 600; text-anchor: middle; }
+.reflabel.base { fill: var(--muted); font-weight: 500; }
+.chart-host.on-focus .bar { opacity: 0.22; }
+.chart-host.on-focus .bar.on { opacity: 1; }
+.chart-host.on-focus .barname, .chart-host.on-focus .barv { opacity: 0.3; }
+.chart-host.on-focus .barname.on, .chart-host.on-focus .barv.on { opacity: 1; }
+.chart-host.on-focus .refline, .chart-host.on-focus .reflabel { opacity: 0.35; }
+.chart-host.on-focus .refline.on, .chart-host.on-focus .reflabel.on { opacity: 1; }
+
 /* 조망 격자 — 테마마다 제 칸. 한 칸에 선이 둘뿐이라 겹칠 게 없다. */
 .mini-grid { display: grid; gap: 9px; grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 1000px) { .mini-grid { grid-template-columns: repeat(2, 1fr); } }
