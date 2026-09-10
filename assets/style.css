@@ -21,6 +21,8 @@
   --cell-ink-strong: #ffffff; /* 4단계 */
   --bar-track: #eceae4;
   --bar-fill: #5598e7;
+  --pill-up-bg: #fbe3e1; --pill-up-ink: #a52a28;
+  --pill-dn-bg: #efeeea; --pill-dn-ink: #6b6a65;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -42,6 +44,8 @@
     --cell-ink-strong: #ffffff;
     --bar-track: #2c2c2a;
     --bar-fill: #2f74c4;
+    --pill-up-bg: #4a2321; --pill-up-ink: #f3a19e;
+    --pill-dn-bg: #2b2b29; --pill-dn-ink: #a8a7a1;
   }
 }
 
@@ -63,6 +67,8 @@
   --cell-ink-strong: #ffffff;
   --bar-track: #2c2c2a;
   --bar-fill: #2f74c4;
+  --pill-up-bg: #4a2321; --pill-up-ink: #f3a19e;
+  --pill-dn-bg: #2b2b29; --pill-dn-ink: #a8a7a1;
 }
 
 * { box-sizing: border-box; }
@@ -390,23 +396,64 @@ td.drop .v { position: relative; }
 .chart-tip .tip-v.up { color: var(--up-4); }
 .chart-tip .tip-v.dn { color: var(--dn-4); }
 
-/* 메인 순위표 */
-#rank thead th { cursor: default; background: var(--card); }
+/* 메인 순위표 — 색 면적은 '선택한 기간 수익률' 막대 하나. 나머지 숫자는 글자색만.
+   코스피·코스닥은 행이 아니라 기준선(구분선)이다. */
+#rank { min-width: 900px; }
+#rank th:first-child, #rank td.name { width: 180px; }
+#rank thead th { cursor: default; background: var(--card); font-weight: 500; padding: 8px 10px; }
 #rank thead th:hover { color: var(--muted); }
-#rank tbody tr.theme { cursor: pointer; }
-#rank tbody tr.theme:hover td.name { background: var(--surface); color: var(--accent); }
-#rank td.name a.go-link { color: inherit; text-decoration: none; display: inline-block; padding: 9px 0; margin: -9px 0; }
-#rank td.name a.go-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-#rank td.name { font-weight: 600; }
-#rank td.name .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
-#rank td.name .tag {
-  margin-left: 7px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--rule);
-  font-size: 11px; color: var(--muted); font-weight: 400;
+#rank thead tr.grp th {
+  text-align: center; border-bottom: 0; padding: 4px 10px 0; font-size: 11px; letter-spacing: 0.04em;
 }
-#rank td.name .go { margin-left: 7px; color: var(--muted); font-weight: 400; }
-#rank tbody tr.mkt td { background: var(--surface); }
+#rank thead tr.grp th span { display: inline-block; width: 100%; border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+#rank tbody td { height: 44px; padding: 0 10px; }
+#rank tbody tr.theme { cursor: pointer; }
+#rank tbody tr.theme:hover td { background: var(--surface); }
+#rank tbody tr.theme:hover td.name a { color: var(--accent); }
+#rank td.name a.go-link {
+  color: inherit; text-decoration: none; font-weight: 650;
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 0; margin: -12px 0;
+}
+#rank td.name a.go-link::after { content: "›"; color: var(--muted); font-weight: 400; font-size: 16px; line-height: 1; }
+#rank td.name a.go-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+#rank td.name .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
 #rank td.sub { color: var(--muted); font-size: 12.5px; }
-#rank td.muted { color: var(--muted); }
+
+#rank .v { font-weight: 500; }
+#rank .v.up { color: var(--up-4); }
+#rank .v.dn { color: var(--dn-4); }
+#rank .v.flat { color: var(--muted); font-weight: 400; }
+#rank td.primary .v { font-weight: 700; font-size: 14.5px; }
+
+/* 다이버징 막대 — 열 전체가 한 눈금 */
+#rank td.barcell { padding-right: 6px; }
+#rank td.barcell .lbl { display: inline-block; min-width: 56px; text-align: right; margin-left: 6px; }
+#rank .bar { position: relative; display: inline-block; width: 150px; height: 18px; vertical-align: middle; }
+#rank .bar .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--rule); }
+#rank .bar .fill { position: absolute; top: 3px; height: 12px; border-radius: 3px; }
+#rank .bar .fill.up { background: var(--up-4); opacity: 0.85; }
+#rank .bar .fill.dn { background: var(--dn-4); opacity: 0.85; }
+#rank .bar.small { width: 90px; height: 14px; }
+#rank .bar.small .fill { top: 3px; height: 8px; opacity: 0.55; }
+
+/* 코스피·코스닥 기준선 행 */
+#rank tbody tr.base td {
+  height: 30px; background: var(--surface); color: var(--ink-2); font-size: 12.5px;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+#rank tbody tr.base td.name { font-weight: 600; color: var(--ink); }
+#rank tbody tr.base td.name .tag { margin-left: 8px; font-weight: 400; color: var(--muted); font-size: 11.5px; }
+#rank tbody tr.base .base-hint { color: var(--muted); font-weight: 400; }
+#rank tbody tr.base.kq td { background: transparent; border-top: 0; border-bottom: 1px dashed var(--rule); color: var(--muted); }
+#rank tbody tr.base.kq td.name { color: var(--ink-2); font-weight: 500; }
+
+/* '우위 전환' — 알약 + "언제부터 · 그 뒤로 얼마". 우위만 색, 열위는 회색(하락과 헷갈리지 않게) */
+#rank td.rs { text-align: right; line-height: 1.2; }
+#rank .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 1.5; }
+#rank .pill.up { background: var(--pill-up-bg); color: var(--pill-up-ink); }
+#rank .pill.dn { background: var(--pill-dn-bg); color: var(--pill-dn-ink); }
+#rank .rs-sub { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+#rank .rs-sub b { font-weight: 600; color: var(--ink-2); }
 
 /* 상세 화면 — 제목이 메인으로 가는 링크 */
 h1 .home { color: inherit; text-decoration: none; }
@@ -421,13 +468,6 @@ h1 .home::before { content: "← "; color: var(--muted); font-weight: 400; }
 .line.ma { stroke-width: 1.25; stroke-dasharray: 3 3; opacity: 0.7; }
 .mark circle { fill: var(--card); stroke-width: 2; }
 .mark .dot { stroke: none; }
-
-/* '우위 전환' 칸 — 숫자 하나가 아니라 "언제부터 · 그 뒤로 얼마"를 두 줄로 */
-#rank td.rs { text-align: right; padding: 7px 12px; line-height: 1.35; }
-#rank td.rs .rs-d { display: block; font-weight: 700; font-size: 13px; }
-#rank td.rs .rs-sub { display: block; color: var(--muted); font-size: 11.5px; }
-#rank td.rs.up .rs-d { color: var(--up-4); }
-#rank td.rs.dn .rs-d { color: var(--dn-4); }
 
 /* '우위 전환'이 무엇이고 무엇이 아닌지 — 마커만 찍어 두면 매수 신호로 읽힌다.
    화면에서 판단의 근거와 한계를 같이 말해야 한다. */

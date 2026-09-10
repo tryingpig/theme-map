@@ -31,22 +31,6 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 사생활 보호 모드 */ } },
 };
 
-/* 히트맵 색 단계 — 상세 화면(app.js)과 같은 규칙이다.
-   컬럼마다 스케일이 따로다(1일 ±3%와 5년 ±700%을 한 스케일로 칠하면 1일이 무채색이 된다). */
-function columnScale(values) {
-  const abs = values.filter((v) => v !== null && v !== undefined).map(Math.abs).sort((a, b) => a - b);
-  if (!abs.length) return 1;
-  return Math.max(abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.8))], 0.5);
-}
-
-function heatClass(v, scale) {
-  if (v === null || v === undefined) return "";
-  const r = Math.abs(v) / scale;
-  if (r < 0.08) return "zero";
-  const step = r < 0.3 ? 1 : r < 0.6 ? 2 : r < 1 ? 3 : 4;
-  return `${v > 0 ? "up" : "dn"}${step}${step === 4 ? " s4" : ""}`;
-}
-
 /* 화면에 올릴 계열 목록. 색은 테마 순서로 고정. */
 function allSeries() {
   const s = state.series;
@@ -147,10 +131,11 @@ function rsCell(r) {
   const rs = r.rs;
   if (!rs) return '<td class="num sub">-</td>';
   const up = rs.state === "above";
-  const when = rs.cross_date ? rs.cross_date.slice(5).replace("-", "/") : "구간 내내";
-  return `<td class="num rs ${up ? "up" : "dn"}">
-    <span class="rs-d">${up ? "우위" : "열위"} D+${rs.days}</span>
-    <span class="rs-sub">${when}부터 ${fmtPct(rs.excess_since)}%p</span></td>`;
+  const when = rs.cross_date ? rs.cross_date.slice(5).replace(/^0/, "").replace("-0", "/").replace("-", "/") : "구간 내내";
+  const d = rs.days === 0 ? "오늘" : `D+${rs.days}`;
+  // 우위만 색을 준다. 열위를 파랑으로 칠하면 '하락'과 헷갈린다 — 열위는 상태일 뿐 방향이 아니다.
+  return `<td class="num rs"><span class="pill ${up ? "up" : "dn"}">${up ? "우위" : "열위"} ${d}</span>
+    <span class="rs-sub">${when}부터 <b>${fmtPct(rs.excess_since)}%p</b></span></td>`;
 }
 
 /* 코스피·코스닥도 테마처럼 껐다 켠다. 코스피를 꺼도 '코스피 대비' 값은 그대로다 —
@@ -163,32 +148,65 @@ function toggleMarket(id) {
   draw();
 }
 
+/* 값 글자 — 색은 부호만, ±0.5% 미만은 회색으로 물러난다. 큰 움직임만 튀어 보이게. */
+function vtxt(v) {
+  if (v === null || v === undefined) return '<span class="v flat">-</span>';
+  const sign = Math.abs(v) < 0.5 ? "flat" : v > 0 ? "up" : "dn";
+  return `<span class="v ${sign}">${fmtPct(v)}</span>`;
+}
+
+/* 다이버징 막대. 열 전체가 한 눈금이라 막대 길이 비교가 곧 순위 비교다.
+   0선 위치는 그 열의 최소·최대에서 계산한다 — 다 양수인 날은 0선이 왼쪽 끝으로 붙는다. */
+function barHtml(v, vals, small) {
+  if (v === null || v === undefined) return "";
+  const nums = vals.filter((x) => x !== null && x !== undefined);
+  const lo = Math.min(0, ...nums), hi = Math.max(0, ...nums);
+  const span = hi - lo || 1;
+  const z = (0 - lo) / span * 100;
+  const w = Math.abs(v) / span * 100;
+  const left = v >= 0 ? z : z - w;
+  return `<span class="bar${small ? " small" : ""}" aria-hidden="true"><span class="zero" style="left:${z.toFixed(2)}%"></span>
+    <span class="fill ${v >= 0 ? "up" : "dn"}" style="left:${left.toFixed(2)}%;width:${w.toFixed(2)}%"></span></span>`;
+}
+
+/* 순위표. 색 면적은 '선택한 기간 수익률' 막대 하나뿐이고, 나머지 숫자는 글자색만 쓴다.
+   코스피·코스닥은 경쟁자가 아니라 기준선이라 행 대신 구분선으로 그린다 —
+   선 위가 그 기간 시장을 이긴 테마, 아래가 진 테마. 색을 안 읽어도 갈린다. */
 function renderTable(rows) {
   const period = PERIODS.find((p) => p.id === state.period);
-  const cols = [
-    { key: "ret", label: `${period.label} 수익률` },
-    { key: "excess", label: "코스피 대비" },
-    { key: "r1d", label: "%1일" },
-    { key: "r5d", label: "%5일" },
-    { key: "r1m", label: "%1개월" },
-    { key: "r1y", label: "%1년" },
-  ];
-  const sc = {};
-  cols.forEach((c) => { sc[c.key] = columnScale(rows.map((r) => r[c.key])); });
+  const rets = rows.map((r) => r.ret);
+  const exs = rows.filter((r) => r.kind === "theme").map((r) => r.excess);
 
-  $("rankHead").innerHTML = `<th>이름</th>${cols.map((c) => `<th>${c.label}</th>`).join("")}`
-    + `<th title="상대강도(테마÷코스피)가 20일 이동평균을 넘은 날부터">우위 전환</th><th>구성</th>`;
-  $("rankBody").innerHTML = rows.map((r) => `
-    <tr class="${r.kind === "market" ? "mkt" : "theme"}" ${r.kind === "theme" ? `data-t="${r.id}"` : `data-m="${r.id}"`}>
-      <td class="name">${r.kind === "market"
-        ? `<i class="dot" style="background:${r.color}"></i>${r.name}<span class="tag">시장</span>`
-        : `<a class="go-link" href="theme.html?theme=${encodeURIComponent(r.id)}"><i class="dot" style="background:${r.color}"></i>${r.name}<span class="go">→</span></a>`}</td>
-      ${cols.map((c) => (c.key === "excess" && r.kind === "market" && r.id === "KOSPI"
-        ? '<td class="num muted">기준</td>'
-        : `<td class="num heat ${heatClass(r[c.key], sc[c.key])}">${fmtPct(r[c.key])}</td>`)).join("")}
-      ${r.kind === "market" ? '<td class="num sub">-</td>' : rsCell(r)}
-      <td class="num sub">${r.count ? `${r.count}종목` : "-"}</td>
-    </tr>`).join("");
+  $("rankHead").innerHTML = `
+    <tr class="grp"><th></th><th colspan="2"><span>선택한 기간 · ${period.label}</span></th>
+      <th colspan="2"><span>단기</span></th><th colspan="2"><span>중장기</span></th><th colspan="2"></th></tr>
+    <tr><th>테마</th><th>수익률</th><th>코스피 대비</th><th>1일</th><th>5일</th><th>1개월</th><th>1년</th>
+      <th title="상대강도(테마÷코스피)가 20일 이동평균을 넘은 날부터">우위 전환</th><th>종목</th></tr>`;
+
+  $("rankBody").innerHTML = rows.map((r) => {
+    if (r.kind === "market") {
+      const base = r.id === "KOSPI";
+      return `<tr class="base${base ? "" : " kq"}" data-m="${r.id}">
+        <td class="name">${r.name}${base ? '<span class="tag">기준선</span>' : ""}</td>
+        <td class="num primary">${vtxt(r.ret)}</td>
+        <td class="num">${base ? '<span class="base-hint">이 선 위 = 시장을 이김</span>' : fmtPct(r.excess)}</td>
+        <td class="num">${fmtPct(r.r1d)}</td><td class="num">${fmtPct(r.r5d)}</td>
+        <td class="num">${fmtPct(r.r1m)}</td><td class="num">${fmtPct(r.r1y)}</td>
+        <td></td><td></td></tr>`;
+    }
+    return `<tr class="theme" data-t="${r.id}">
+      <td class="name"><a class="go-link" href="theme.html?theme=${encodeURIComponent(r.id)}"><i class="dot" style="background:${r.color}"></i>${r.name}</a></td>
+      <td class="num barcell primary">${barHtml(r.ret, rets)}<span class="lbl">${vtxt(r.ret)}</span></td>
+      <td class="num barcell">${barHtml(r.excess, exs, true)}<span class="lbl">${vtxt(r.excess)}</span></td>
+      <td class="num">${vtxt(r.r1d)}</td><td class="num">${vtxt(r.r5d)}</td>
+      <td class="num">${vtxt(r.r1m)}</td><td class="num">${vtxt(r.r1y)}</td>
+      ${rsCell(r)}
+      <td class="num sub">${r.count ?? "-"}</td>
+    </tr>`;
+  }).join("");
+
+  $("rankNote").textContent =
+    `${state.series.as_of} 종가 · ${period.label} 수익률순 · 코스피 선 위가 시장을 이긴 테마 · 이름을 누르면 구성종목`;
 
   // 이름은 진짜 링크(a)다 — 새 탭·키보드·모바일에서 확실히 눌린다. 행의 나머지 영역은 onclick으로 받되,
   // 링크 위를 누른 클릭은 브라우저에 맡긴다(두 번 이동 방지).
@@ -202,7 +220,7 @@ function renderTable(rows) {
   // 표에서 행을 훑을 때도 차트가 같이 반응한다 — 순위와 선을 눈으로 잇는 게 이 표의 일이다.
   // 마우스에서만. 터치 기기는 hover 핸들러가 DOM을 바꾸면 첫 탭이 hover로만 소비돼 클릭이 안 먹는다(iOS).
   $("rankBody").querySelectorAll("tr").forEach((tr) => {
-    const id = tr.dataset.t || (tr.classList.contains("mkt") ? tr.dataset.m : null);
+    const id = tr.dataset.t || tr.dataset.m;
     if (!id) return;
     tr.onpointerenter = (e) => { if (e.pointerType === "mouse") Chart.focus($("chart"), id); };
     tr.onpointerleave = (e) => { if (e.pointerType === "mouse") Chart.focus($("chart"), null); };
@@ -306,10 +324,14 @@ async function init() {
   state.index = index;
   state.series = series;
 
-  state.period = store.get("theme-map:main:period", "1y");
-  state.mode = store.get("theme-map:main:mode", "abs");
-  state.view = store.get("theme-map:main:view", "overlay");
+  // URL 파라미터는 저장된 설정보다 우선하되 저장하지는 않는다 — 텔레그램용 캡처(theme-map-alert)가
+  // ?period=1w&all=1 로 열어 순위표를 찍는다. 사람이 그 링크를 열어도 자기 설정이 덮이지 않는다.
+  const q = new URL(location.href).searchParams;
+  state.period = q.get("period") || store.get("theme-map:main:period", "1y");
+  state.mode = q.get("mode") || store.get("theme-map:main:mode", "abs");
+  state.view = q.get("view") || store.get("theme-map:main:view", "overlay");
   if (!PERIODS.some((p) => p.id === state.period)) state.period = "1y";
+  if (!["abs", "rel"].includes(state.mode)) state.mode = "abs";
   if (!VIEWS.some((v) => v.id === state.view)) state.view = "overlay";
 
   const ids = series.themes.map((t) => t.id);
@@ -322,6 +344,7 @@ async function init() {
   let savedM = null;
   try { savedM = JSON.parse(store.get("theme-map:markets", "null")); } catch (e) { /* noop */ }
   state.markets = Array.isArray(savedM) ? savedM.filter((m) => mids.includes(m)) : mids;
+  if (q.get("all") === "1") { state.visible = ids; state.markets = mids; }
 
   $("asOf").textContent = series.as_of;
   $("updatedAt").textContent = index.updated_at;
