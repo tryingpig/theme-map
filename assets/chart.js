@@ -16,6 +16,7 @@ const Chart = (() => {
   const FOCUS_HIT = 14;          // 이 거리(px) 안에 있는 선을 "가리키고 있는" 선으로 본다
 
   const PERIODS = [
+    { id: "1d", label: "1일", bars: 1 },      // 거래일 1일 전 종가 대비 — 표의 %1일과 같은 기준
     { id: "1w", label: "1주", days: 7 },
     { id: "2w", label: "2주", days: 14 },
     { id: "1m", label: "1개월", months: 1 },
@@ -30,6 +31,7 @@ const Chart = (() => {
      주 단위(1주·2주)는 캘린더 7일·14일 전이다(거래일 5일·10일이 아니다). */
   function fromIndex(dates, period) {
     const p = typeof period === "number" ? { months: period } : period;
+    if (p.bars) return Math.max(0, dates.length - 1 - p.bars);   // 거래일 기준
     const cut = new Date(`${dates[dates.length - 1]}T00:00:00Z`);
     if (p.months) cut.setUTCMonth(cut.getUTCMonth() - p.months);
     if (p.days) cut.setUTCDate(cut.getUTCDate() - p.days);
