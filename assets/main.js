@@ -5,8 +5,8 @@
 /* 계열 색은 **테마마다 고정**이다. 자리는 build.py가 series.json에 적어 두고(slot),
    한 번 준 자리는 계속 간다 — 이름 순서로 정하면 테마를 하나 끼워 넣을 때마다 뒤쪽 색이
    전부 밀려서, 어제 파란 선이던 반도체가 오늘 주황이 된다.
-   13색은 dataviz 검증 팔레트(라이트/다크 모두 통과). 실제 색값은 style.css의 --s1~--s13. */
-const SLOTS = 13;
+   14색은 dataviz 검증 팔레트(인접쌍 통과, 전체쌍 최악 쌍은 13색 때와 동일). 실제 색값은 style.css의 --s1~--s14. */
+const SLOTS = 14;
 const MARKET_STYLE = {
   KOSPI: { color: "var(--mkt-1)", dash: "", kind: "market" },
   KOSDAQ: { color: "var(--mkt-2)", dash: "5 4", kind: "market" },
@@ -109,18 +109,13 @@ function renderLegend() {
   });
 }
 
-/* 같은 색 슬롯을 쓰는 테마가 동시에 켜지지 않게 한다.
-   테마가 9개를 넘어가면 색이 한 바퀴 돌기 때문에, 그때 같은 색 두 줄이 한 화면에
-   올라오면 어느 선이 뭔지 알 수 없다. 새로 켜는 쪽을 살리고 같은 슬롯은 끈다. */
+/* 테마를 켜고 끈다 — 다른 테마는 건드리지 않는다.
+   예전엔 색 자리가 모자라 같은 자리의 테마를 자동으로 껐는데, 사용자가 다른 걸 누르면
+   엉뚱한 선이 사라지는 게 더 불편했다(2026-09-10). 테마 수만큼 색을 두는 쪽으로 정리. */
 function toggleTheme(id) {
-  const { themes } = allSeries();
-  const t = themes.find((x) => x.id === id);
-  if (state.visible.includes(id)) {
-    state.visible = state.visible.filter((v) => v !== id);
-  } else {
-    const clash = themes.filter((x) => x.slot === t.slot && state.visible.includes(x.id)).map((x) => x.id);
-    state.visible = [...state.visible.filter((v) => !clash.includes(v)), id];
-  }
+  state.visible = state.visible.includes(id)
+    ? state.visible.filter((v) => v !== id)
+    : [...state.visible, id];
   store.set("theme-map:main:visible", JSON.stringify(state.visible));
   draw();
 }
