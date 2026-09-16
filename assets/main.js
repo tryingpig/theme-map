@@ -277,6 +277,12 @@ function draw() {
       baseValues: baseValues(),
       href: (c) => `theme.html?theme=${encodeURIComponent(c.id)}`,
     });
+  } else if (dates.length - from <= 2) {
+    // 점이 둘뿐인 구간(1일)은 선이 아니라 수익률순 가로 막대로 — 부채꼴 직선은 읽을 게 없다.
+    Chart.renderBars($("chart"), {
+      dates, from, mode: state.mode, baseId: "KOSPI",
+      series: visibleSeries(), baseValues: baseValues(),
+    });
   } else {
     Chart.render($("chart"), {
       dates, from, mode: state.mode, baseId: "KOSPI",
@@ -287,7 +293,12 @@ function draw() {
 
   const rows = buildRows(from);
   renderTable(rows);
-  $("chartNote").textContent = grid
+  const bars = !grid && dates.length - from <= 2;
+  $("chartNote").textContent = bars
+    ? (state.mode === "rel"
+        ? `${dates[from]} → ${dates[dates.length - 1]} 코스피 대비 하루 초과수익 · 수익률순`
+        : `${dates[from]} → ${dates[dates.length - 1]} 하루 등락 · 수익률순 · 세로선이 코스피·코스닥`)
+    : grid
     ? (state.mode === "rel"
         ? "점선이 코스피 · 선이 점선 위면 그 기간 시장을 이긴 것 · 칸끼리 같은 눈금"
         : `${dates[from]} 종가 = 0% 기준 · 회색 선이 코스피 · 칸끼리 같은 눈금`)

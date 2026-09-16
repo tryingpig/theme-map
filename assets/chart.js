@@ -454,6 +454,92 @@ const Chart = (() => {
     if (fn) fn(id || null);
   }
 
+  /* ── 가로 막대(점이 둘뿐인 구간: 1일) ──────────────────────
+     점 두 개로 선을 그으면 부채꼴로 퍼진 직선일 뿐이라 읽을 게 없다.
+     구간이 거래일 하루면 "누가 얼마나"만 남으니 수익률순 가로 막대로 바꾼다.
+     코스피·코스닥은 막대가 아니라 세로 기준선이다(코스피 대비 모드면 코스피는 0선). */
+  function renderBars(host, cfg) {
+    const { dates, from, mode = "abs", baseId = "KOSPI" } = cfg;
+    const width = Math.max(320, host.clientWidth || 760);
+    const baseValues = cfg.baseValues
+      || (cfg.series.find((s) => s.id === baseId) || {}).values;
+    if (mode === "rel" && !baseValues) {
+      host.innerHTML = '<p class="chart-empty">기준 지수를 불러오지 못했습니다.</p>'; return;
+    }
+    const last = (s) => {
+      const vals = mode === "rel" ? ratio(s.values, baseValues) : s.values;
+      const b = firstValue(vals, from);
+      if (!b) return null;
+      const pct = toPct(vals, from, b);
+      for (let i = pct.length - 1; i >= 0; i--) if (pct[i] !== null) return pct[i];
+      return null;
+    };
+    const rows = cfg.series.map((s) => ({ ...s, v: last(s) })).filter((s) => s.v !== null);
+    const themes = rows.filter((s) => s.kind !== "market").sort((a, b) => b.v - a.v);
+    const markets = rows.filter((s) => s.kind === "market");
+    if (!themes.length) { host.innerHTML = '<p class="chart-empty">표시할 계열이 없습니다.</p>'; return; }
+
+    const ROW = 26, TOP = 30, BOTTOM = 24;
+    const labelW = 12 + Math.max(...themes.map((s) => s.name.length)) * 12;
+    const left = labelW + 8, right = 64;
+    const plotW = width - left - right;
+    const height = TOP + ROW * themes.length + BOTTOM;
+    const all = [...themes.map((s) => s.v), ...markets.map((s) => s.v), 0];
+    let lo = Math.min(...all), hi = Math.max(...all);
+    const pad = (hi - lo) * 0.06 || 0.5;
+    lo -= pad; hi += pad;
+    const x = (v) => left + plotW * (v - lo) / (hi - lo);
+    const x0 = x(0);
+
+    const grid = niceTicks(lo, hi, 6).map((t) => `
+      <line class="grid${Math.abs(t) < 1e-9 ? " zero" : ""}" x1="${x(t).toFixed(1)}" x2="${x(t).toFixed(1)}"
+            y1="${TOP - 6}" y2="${height - BOTTOM + 4}"/>
+      <text class="xtick" x="${x(t).toFixed(1)}" y="${height - 6}">${fmtPct(t, 1)}</text>`).join("");
+
+    /* 시장 기준선 — 코스피는 실선, 코스닥은 점선. 코스피 대비 모드에서 코스피는 0선 그 자체다. */
+    const refs = markets.filter((m) => !(mode === "rel" && m.id === baseId)).map((m, k) => `
+      <g class="ref" data-id="${esc(m.id)}">
+        <line class="line mkt" style="stroke:${m.color}" ${m.dash ? `stroke-dasharray="${m.dash}"` : ""}
+              x1="${x(m.v).toFixed(1)}" x2="${x(m.v).toFixed(1)}" y1="${TOP - 8}" y2="${height - BOTTOM + 4}"/>
+        <text class="endlabel base" x="${(x(m.v) + (m.v >= 0 ? 5 : -5)).toFixed(1)}" y="${TOP - 14 + k * 0}"
+              text-anchor="${m.v >= 0 ? "start" : "end"}">${esc(m.name)} ${fmtPct(m.v, 2)}</text>
+      </g>`).join("");
+
+    const barsSvg = themes.map((s, i) => {
+      const y = TOP + ROW * i, h = ROW - 8;
+      const bx = Math.min(x0, x(s.v)), bw = Math.max(1.5, Math.abs(x(s.v) - x0));
+      const up = s.v >= 0;
+      const vx = up ? x(s.v) + 6 : x(s.v) - 6;
+      return `
+      <g class="hbar" data-id="${esc(s.id)}">
+        <rect class="hit" x="${left}" y="${y}" width="${plotW}" height="${ROW}" fill="transparent"/>
+        <text class="endlabel" x="${labelW}" y="${(y + ROW / 2).toFixed(1)}" text-anchor="end" style="fill:${s.color}">${esc(s.name)}</text>
+        <rect class="fill" x="${bx.toFixed(1)}" y="${y + 4}" width="${bw.toFixed(1)}" height="${h}" rx="3" style="fill:${s.color}"/>
+        <text class="hval ${up ? "up" : "dn"}" x="${vx.toFixed(1)}" y="${(y + ROW / 2).toFixed(1)}"
+              text-anchor="${up ? "start" : "end"}">${fmtPct(s.v, 2)}</text>
+      </g>`;
+    }).join("");
+
+    host.innerHTML = `
+      <svg class="chart bars" width="${width}" height="${height}" role="img"
+           aria-label="${mode === "rel" ? "코스피 대비" : ""} 하루 수익률 막대">
+        ${grid}${refs}${barsSvg}
+      </svg>`;
+
+    /* 강조 — 범례 칩·순위표 행에서 걸어오는 손잡이. 막대 위 hover도 같은 길로. */
+    const svg = host.querySelector("svg");
+    let hovered = null;
+    const paint = () => {
+      host.classList.toggle("on-focus", !!hovered);
+      svg.querySelectorAll("[data-id]").forEach((el) => el.classList.toggle("on", el.dataset.id === hovered));
+    };
+    svg.querySelectorAll("g.hbar").forEach((g) => {
+      g.addEventListener("pointerenter", () => { hovered = g.dataset.id; paint(); });
+      g.addEventListener("pointerleave", () => { hovered = null; paint(); });
+    });
+    FOCUS.set(host, (id) => { hovered = id; paint(); });
+  }
+
   /* ── 조망 격자(스몰 멀티플) ──────────────────────────────
 
      겹쳐 그리기의 반대편이다. 테마마다 제 칸을 주면 한 칸에 선이 둘뿐이라
@@ -544,5 +630,5 @@ const Chart = (() => {
     return { lo: lo + pad, hi: hi - pad, count: cells.length };
   }
 
-  return { render, renderGrid, pctFrom, fmtPct, PERIODS, fromIndex, focus };
+  return { render, renderBars, renderGrid, pctFrom, fmtPct, PERIODS, fromIndex, focus };
 })();
