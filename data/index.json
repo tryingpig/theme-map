@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-25 18:01",
+  "updated_at": "2026-09-26 03:04",
   "as_of": "2026-09-23",
   "period_mode": "calendar",
   "universe_source": "notion",
@@ -10,8 +10,8 @@
       "symbol": "^KS11",
       "close": 7080.92,
       "as_of": "2026-09-23",
-      "r1d": 1.04,
-      "r5d": 6.85,
+      "r1d": 0.9,
+      "r5d": 5.4,
       "r1m": 2.43,
       "r1y": 103.11,
       "from_52w_high": -24.56,
@@ -20,7 +20,7 @@
       "from_all_high": -24.56,
       "high_all": 9385.59,
       "high_all_date": "2026-06-19",
-      "bars": 7331,
+      "bars": 7332,
       "first_date": "1996-12-11"
     },
     {
@@ -29,8 +29,8 @@
       "symbol": "^KQ11",
       "close": 844.48,
       "as_of": "2026-09-23",
-      "r1d": 0.98,
-      "r5d": 3.95,
+      "r1d": 1.21,
+      "r5d": 3.49,
       "r1m": 5.3,
       "r1y": -3.18,
       "from_52w_high": -31.31,
@@ -39,7 +39,7 @@
       "from_all_high": -31.31,
       "high_all": 1229.42,
       "high_all_date": "2026-04-27",
-      "bars": 6392,
+      "bars": 6393,
       "first_date": "2000-10-16"
     }
   ],
