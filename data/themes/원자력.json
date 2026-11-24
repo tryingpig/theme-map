@@ -4,7 +4,7 @@
     "name": "원자력"
   },
   "as_of": "2026-11-24",
-  "updated_at": "2026-11-24 20:01",
+  "updated_at": "2026-11-25 08:15",
   "period_mode": "calendar",
   "index": {
     "as_of": "2026-11-24",
@@ -1369,7 +1369,7 @@
           "desc": "열교환기·HRSG",
           "note": "",
           "order": 41,
-          "market_cap": 475746172928,
+          "market_cap": 498967969792,
           "close": 25250.0,
           "as_of": "2026-11-24",
           "r1d": 6.09,
