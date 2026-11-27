@@ -4,7 +4,7 @@
     "name": "엔터테인먼트"
   },
   "as_of": "2026-11-27",
-  "updated_at": "2026-11-27 18:01",
+  "updated_at": "2026-11-28 07:18",
   "period_mode": "calendar",
   "index": {
     "as_of": "2026-11-27",
@@ -38,7 +38,7 @@
     "bars": 362,
     "first_date": "2025-06-09",
     "basis": "동일가중 지수 (구성종목 일간수익률 평균을 매일 이어 붙인 적립값)",
-    "count": 4
+    "count": 5
   },
   "series": {
     "dates": [
@@ -1158,7 +1158,7 @@
           "desc": "SM 아티스트(NCT·에스파·라이즈) 음반·공연·IP",
           "note": "",
           "order": 1310,
-          "market_cap": null,
+          "market_cap": 2298626965504,
           "close": 100400.0,
           "as_of": "2026-11-27",
           "r1d": 0.2,
